@@ -1,0 +1,1018 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>中央極限定理互動 Demo 2</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f7f5ef;
+      --surface: #ffffff;
+      --surface-2: #eef4f2;
+      --text: #1f2a2e;
+      --muted: #637073;
+      --border: #cbd5d2;
+      --axis: #596669;
+      --grid: #dde5e2;
+      --primary: #197278;
+      --primary-dark: #10565b;
+      --accent: #b85c38;
+      --line: #1d4f91;
+      --pmf: #c44536;
+      --warn-bg: #fff4d8;
+      --warn-text: #6f4e00;
+      --error-bg: #ffe6e6;
+      --error-text: #8a1f1f;
+      --ok-bg: #e6f4ed;
+      --ok-text: #1d6042;
+      --shadow: 0 10px 30px rgba(31, 42, 46, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+    }
+
+    main {
+      width: min(1440px, 100%);
+      margin: 0 auto;
+      padding: 18px;
+    }
+
+    header {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 14px;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: clamp(1.35rem, 2vw, 2rem);
+      font-weight: 650;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .status {
+      max-width: 520px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .status.error {
+      color: var(--error-text);
+      background: var(--error-bg);
+      border-color: rgba(138, 31, 31, 0.25);
+    }
+
+    .status.warn {
+      color: var(--warn-text);
+      background: var(--warn-bg);
+      border-color: rgba(111, 78, 0, 0.25);
+    }
+
+    .status.ok {
+      color: var(--ok-text);
+      background: var(--ok-bg);
+      border-color: rgba(29, 96, 66, 0.22);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(320px, 0.95fr) minmax(360px, 1.2fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      min-width: 0;
+    }
+
+    .panel-header {
+      padding: 14px 16px 10px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 650;
+      letter-spacing: 0;
+    }
+
+    .panel-body {
+      padding: 14px 16px 16px;
+    }
+
+    .canvas-wrap {
+      position: relative;
+      width: 100%;
+      aspect-ratio: 16 / 10;
+      min-height: 260px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      overflow: hidden;
+      background: linear-gradient(180deg, var(--surface), var(--surface-2));
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+      touch-action: none;
+    }
+
+    .canvas-note {
+      position: absolute;
+      left: 10px;
+      top: 10px;
+      right: 10px;
+      pointer-events: none;
+      color: var(--muted);
+      font-size: 0.86rem;
+      background: rgba(255, 255, 255, 0.72);
+      border: 1px solid rgba(203, 213, 210, 0.78);
+      border-radius: 6px;
+      padding: 6px 8px;
+      width: fit-content;
+      max-width: calc(100% - 20px);
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(120px, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    label {
+      display: grid;
+      gap: 5px;
+      color: var(--muted);
+      font-size: 0.88rem;
+      min-width: 0;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      padding: 8px 9px;
+      color: var(--text);
+      background: var(--surface);
+      font: inherit;
+      min-width: 0;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--primary);
+    }
+
+    button {
+      appearance: none;
+      border: 1px solid var(--primary);
+      background: var(--primary);
+      color: #ffffff;
+      border-radius: 7px;
+      padding: 9px 12px;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    button:hover {
+      background: var(--primary-dark);
+    }
+
+    .button-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+      margin-top: 14px;
+    }
+
+    .slider-block {
+      margin-top: 14px;
+      display: grid;
+      gap: 7px;
+    }
+
+    .slider-line {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+
+    .stat-card {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      min-width: 0;
+    }
+
+    .stat-card h3 {
+      margin: 0 0 8px;
+      font-size: 0.95rem;
+      font-weight: 650;
+    }
+
+    .metric {
+      display: grid;
+      grid-template-columns: minmax(90px, auto) minmax(0, 1fr);
+      gap: 8px;
+      margin: 4px 0;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .metric span:first-child {
+      color: var(--muted);
+    }
+
+    .metric span:last-child {
+      overflow-wrap: anywhere;
+    }
+
+    .progress {
+      height: 8px;
+      border-radius: 99px;
+      background: var(--grid);
+      overflow: hidden;
+      margin-top: 10px;
+      display: none;
+    }
+
+    .progress.active {
+      display: block;
+    }
+
+    .progress > div {
+      height: 100%;
+      width: 0%;
+      background: var(--accent);
+      transition: width 120ms linear;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 0.86rem;
+      align-items: center;
+    }
+
+    .key {
+      display: inline-flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .swatch {
+      width: 22px;
+      height: 3px;
+      border-radius: 99px;
+      background: var(--line);
+    }
+
+    .swatch.pmf {
+      background: var(--pmf);
+    }
+
+    .swatch.sum {
+      background: var(--accent);
+    }
+
+    @media (max-width: 980px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 720px) {
+      main {
+        padding: 12px;
+      }
+
+      header {
+        display: grid;
+        align-items: start;
+      }
+
+      .controls {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .stats {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 430px) {
+      .controls {
+        grid-template-columns: 1fr;
+      }
+
+      .panel-header {
+        display: grid;
+      }
+
+      .canvas-wrap {
+        min-height: 230px;
+        aspect-ratio: 4 / 3;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <h1>中央極限定理互動 Demo</h1>
+        <p class="subtitle">畫出一筆非負分布曲線，觀察獨立同分布隨機變數相加後的 PMF。</p>
+      </div>
+      <div id="status" class="status">請在左側畫布畫出一筆分布曲線。</div>
+    </header>
+
+    <section class="layout" aria-label="中央極限定理互動工具">
+      <article class="panel">
+        <div class="panel-header">
+          <h2>手繪分布</h2>
+          <div class="legend" aria-label="線條圖例">
+            <span class="key"><span class="swatch"></span>手畫線</span>
+            <span class="key"><span class="swatch pmf"></span>PMF scatter</span>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="canvas-wrap">
+            <canvas id="drawCanvas" aria-label="手繪原始分布畫布"></canvas>
+            <div id="drawNote" class="canvas-note">手繪模式：按住並拖曳畫一筆曲線</div>
+          </div>
+
+          <div class="controls">
+            <label>x_min
+              <input id="xMin" type="number" value="0" step="any">
+            </label>
+            <label>x_max
+              <input id="xMax" type="number" value="1" step="any">
+            </label>
+            <label>取樣點數
+              <input id="sampleCount" type="number" value="256" min="2" step="1">
+            </label>
+            <label>n_max
+              <input id="nMax" type="number" value="30" min="1" step="1">
+            </label>
+          </div>
+
+          <div class="button-row">
+            <button id="redrawBtn" type="button">取消重繪</button>
+          </div>
+
+          <div class="stats">
+            <div class="stat-card">
+              <h3>原始分布 n=1</h3>
+              <p class="metric"><span>E[X]</span><span id="mean1">尚未建立 PMF</span></p>
+              <p class="metric"><span>SD[X]</span><span id="sd1">尚未建立 PMF</span></p>
+            </div>
+            <div class="stat-card">
+              <h3>目前設定</h3>
+              <p class="metric"><span>範圍</span><span id="rangeLabel">[0, 1]</span></p>
+              <p class="metric"><span>格距</span><span id="stepLabel">-</span></p>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="panel">
+        <div class="panel-header">
+          <h2>相加 n 次後的 PMF</h2>
+          <div class="legend" aria-label="卷積圖例">
+            <span class="key"><span class="swatch sum"></span>卷積 PMF scatter</span>
+          </div>
+        </div>
+        <div class="panel-body">
+          <div class="canvas-wrap">
+            <canvas id="sumCanvas" aria-label="相加 n 次後的 PMF 畫布"></canvas>
+            <div id="sumNote" class="canvas-note">完成手繪後顯示卷積結果</div>
+          </div>
+
+          <div class="slider-block">
+            <div class="slider-line">
+              <span>n = <strong id="nValue">1</strong></span>
+              <span>範圍：1..<span id="nMaxLabel">30</span></span>
+            </div>
+            <input id="nSlider" type="range" min="1" max="30" value="1" step="1" aria-label="相加次數 n">
+          </div>
+
+          <div id="progress" class="progress" aria-hidden="true"><div></div></div>
+
+          <div class="stats">
+            <div class="stat-card">
+              <h3>卷積分布</h3>
+              <p class="metric"><span>E[Sum]</span><span id="meanN">尚未建立 PMF</span></p>
+              <p class="metric"><span>SD[Sum]</span><span id="sdN">尚未建立 PMF</span></p>
+            </div>
+            <div class="stat-card">
+              <h3>理論值</h3>
+              <p class="metric"><span>n E[X]</span><span id="theoryMean">尚未建立 PMF</span></p>
+              <p class="metric"><span>sqrt(n) SD[X]</span><span id="theorySd">尚未建立 PMF</span></p>
+            </div>
+          </div>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <script>
+    const state = {
+      editing: true,
+      drawing: false,
+      activeStroke: null,
+      pendingStroke: null,
+      effectiveStroke: null,
+      pmf: null,
+      xGrid: [],
+      mean1: NaN,
+      sd1: NaN,
+      convolutionToken: 0,
+      latestDist: null
+    };
+
+    const els = {
+      status: document.getElementById('status'),
+      drawCanvas: document.getElementById('drawCanvas'),
+      sumCanvas: document.getElementById('sumCanvas'),
+      drawNote: document.getElementById('drawNote'),
+      sumNote: document.getElementById('sumNote'),
+      xMin: document.getElementById('xMin'),
+      xMax: document.getElementById('xMax'),
+      sampleCount: document.getElementById('sampleCount'),
+      nMax: document.getElementById('nMax'),
+      redrawBtn: document.getElementById('redrawBtn'),
+      nSlider: document.getElementById('nSlider'),
+      nValue: document.getElementById('nValue'),
+      nMaxLabel: document.getElementById('nMaxLabel'),
+      rangeLabel: document.getElementById('rangeLabel'),
+      stepLabel: document.getElementById('stepLabel'),
+      mean1: document.getElementById('mean1'),
+      sd1: document.getElementById('sd1'),
+      meanN: document.getElementById('meanN'),
+      sdN: document.getElementById('sdN'),
+      theoryMean: document.getElementById('theoryMean'),
+      theorySd: document.getElementById('theorySd'),
+      progress: document.getElementById('progress'),
+      progressBar: document.querySelector('#progress > div')
+    };
+
+    const drawCtx = els.drawCanvas.getContext('2d');
+    const sumCtx = els.sumCanvas.getContext('2d');
+
+    function cssVar(name) {
+      return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    }
+
+    function setStatus(message, type = '') {
+      els.status.textContent = message;
+      els.status.className = `status${type ? ` ${type}` : ''}`;
+    }
+
+    function formatNumber(value) {
+      if (!Number.isFinite(value)) return '-';
+      const abs = Math.abs(value);
+      if (abs !== 0 && (abs < 0.0001 || abs >= 1000000)) return value.toExponential(4);
+      return value.toLocaleString('zh-Hant', { maximumSignificantDigits: 7 });
+    }
+
+    function readConfig() {
+      const xMin = Number(els.xMin.value);
+      const xMax = Number(els.xMax.value);
+      const sampleCount = Math.floor(Number(els.sampleCount.value));
+      const nMax = Math.floor(Number(els.nMax.value));
+      const errors = [];
+      if (!Number.isFinite(xMin) || !Number.isFinite(xMax) || xMin >= xMax) {
+        errors.push('x_min 必須小於 x_max。');
+      }
+      if (!Number.isFinite(sampleCount) || sampleCount < 2) {
+        errors.push('取樣點數至少要是 2。');
+      }
+      if (!Number.isFinite(nMax) || nMax < 1) {
+        errors.push('n_max 至少要是 1。');
+      }
+      return { xMin, xMax, sampleCount, nMax, errors };
+    }
+
+    function resizeCanvas(canvas, ctx) {
+      const rect = canvas.getBoundingClientRect();
+      const ratio = window.devicePixelRatio || 1;
+      const width = Math.max(1, Math.round(rect.width * ratio));
+      const height = Math.max(1, Math.round(rect.height * ratio));
+      if (canvas.width !== width || canvas.height !== height) {
+        canvas.width = width;
+        canvas.height = height;
+      }
+      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+      return { width: rect.width, height: rect.height };
+    }
+
+    function plotArea(size) {
+      const left = 46;
+      const right = 16;
+      const top = 18;
+      const bottom = 34;
+      return {
+        x: left,
+        y: top,
+        w: Math.max(40, size.width - left - right),
+        h: Math.max(40, size.height - top - bottom),
+        bottom: size.height - bottom,
+        right: size.width - right
+      };
+    }
+
+    function clearCanvas(ctx, size) {
+      ctx.clearRect(0, 0, size.width, size.height);
+    }
+
+    function drawAxes(ctx, size, xLabelLeft, xLabelRight, yLabel = 'height') {
+      const area = plotArea(size);
+      ctx.save();
+      ctx.strokeStyle = cssVar('--grid');
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (let i = 1; i <= 4; i++) {
+        const y = area.y + (area.h * i) / 5;
+        ctx.moveTo(area.x, y);
+        ctx.lineTo(area.right, y);
+      }
+      for (let i = 1; i <= 4; i++) {
+        const x = area.x + (area.w * i) / 5;
+        ctx.moveTo(x, area.y);
+        ctx.lineTo(x, area.bottom);
+      }
+      ctx.stroke();
+
+      ctx.strokeStyle = cssVar('--axis');
+      ctx.lineWidth = 1.2;
+      ctx.beginPath();
+      ctx.moveTo(area.x, area.y);
+      ctx.lineTo(area.x, area.bottom);
+      ctx.lineTo(area.right, area.bottom);
+      ctx.stroke();
+
+      ctx.fillStyle = cssVar('--muted');
+      ctx.font = '12px system-ui, sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText(formatNumber(xLabelLeft), area.x, size.height - 11);
+      ctx.textAlign = 'right';
+      ctx.fillText(formatNumber(xLabelRight), area.right, size.height - 11);
+      ctx.save();
+      ctx.translate(14, area.y + 8);
+      ctx.rotate(-Math.PI / 2);
+      ctx.textAlign = 'right';
+      ctx.fillText(yLabel, 0, 0);
+      ctx.restore();
+      ctx.restore();
+    }
+
+    function normalizedPoint(event, canvas) {
+      const rect = canvas.getBoundingClientRect();
+      const size = { width: rect.width, height: rect.height };
+      const area = plotArea(size);
+      const x = Math.min(area.right, Math.max(area.x, event.clientX - rect.left));
+      const y = Math.min(area.bottom, Math.max(area.y, event.clientY - rect.top));
+      return {
+        px: x,
+        py: y,
+        nx: (x - area.x) / area.w,
+        height: Math.max(0, (area.bottom - y) / area.h)
+      };
+    }
+
+    function drawStroke(ctx, size, stroke, color, width) {
+      if (!stroke || stroke.length === 0) return;
+      const area = plotArea(size);
+      ctx.save();
+      ctx.strokeStyle = color;
+      ctx.lineWidth = width;
+      ctx.lineJoin = 'round';
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      stroke.forEach((pt, idx) => {
+        const x = area.x + pt.nx * area.w;
+        const y = area.bottom - pt.height * area.h;
+        if (idx === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      });
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    function drawPmfScatter(ctx, size) {
+      if (!state.pmf || state.pmf.length === 0) return;
+      const area = plotArea(size);
+      const maxP = Math.max(...state.pmf);
+      if (maxP <= 0) return;
+      ctx.save();
+      ctx.fillStyle = cssVar('--pmf');
+      const radius = state.pmf.length > 700 ? 1.4 : 2.2;
+      state.pmf.forEach((p, i) => {
+        if (p <= 0) return;
+        const x = area.x + (i / Math.max(1, state.pmf.length - 1)) * area.w;
+        const y = area.bottom - (p / maxP) * area.h;
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, Math.PI * 2);
+        ctx.fill();
+      });
+      ctx.restore();
+    }
+
+    function renderDrawCanvas() {
+      const size = resizeCanvas(els.drawCanvas, drawCtx);
+      clearCanvas(drawCtx, size);
+      const cfg = readConfig();
+      drawAxes(drawCtx, size, cfg.xMin, cfg.xMax);
+      drawStroke(drawCtx, size, state.effectiveStroke, cssVar('--line'), 2);
+      if (state.editing && state.pendingStroke) {
+        drawStroke(drawCtx, size, state.pendingStroke, cssVar('--accent'), 2);
+      }
+      drawPmfScatter(drawCtx, size);
+      els.drawNote.textContent = state.editing
+        ? '手繪模式：按住並拖曳畫一筆曲線'
+        : '已鎖定：按「重繪」重新輸入';
+    }
+
+    function sampleStrokeHeights(stroke, count) {
+      const heights = new Array(count).fill(0);
+      const seen = new Array(count).fill(false);
+      const yTolerance = 0.035;
+      let hasMultipleY = false;
+      if (!stroke || stroke.length < 2) return { heights, hasMultipleY: false };
+
+      function assign(index, height) {
+        const safeIndex = Math.min(count - 1, Math.max(0, index));
+        const safeHeight = Math.max(0, height);
+        if (seen[safeIndex] && Math.abs(heights[safeIndex] - safeHeight) > yTolerance) {
+          hasMultipleY = true;
+          return;
+        }
+        heights[safeIndex] = seen[safeIndex]
+          ? (heights[safeIndex] + safeHeight) / 2
+          : safeHeight;
+        seen[safeIndex] = true;
+      }
+
+      for (let i = 0; i < stroke.length - 1; i++) {
+        const a = stroke[i];
+        const b = stroke[i + 1];
+        const start = Math.round(Math.min(1, Math.max(0, a.nx)) * (count - 1));
+        const end = Math.round(Math.min(1, Math.max(0, b.nx)) * (count - 1));
+        const lo = Math.min(start, end);
+        const hi = Math.max(start, end);
+
+        if (start === end) {
+          assign(start, a.height);
+          assign(end, b.height);
+          continue;
+        }
+
+        for (let j = lo; j <= hi; j++) {
+          const x = count === 1 ? 0 : j / (count - 1);
+          const span = b.nx - a.nx;
+          const t = Math.abs(span) < 1e-12 ? 0 : (x - a.nx) / span;
+          const h = a.height + (b.height - a.height) * Math.min(1, Math.max(0, t));
+          assign(j, h);
+          if (hasMultipleY) break;
+        }
+        if (hasMultipleY) break;
+      }
+
+      return { heights, hasMultipleY };
+    }
+
+    function buildPmfFromStroke() {
+      const cfg = readConfig();
+      updateConfigLabels(cfg);
+      if (cfg.errors.length) {
+        clearDistribution(cfg.errors.join(' '));
+        return false;
+      }
+      if (!state.effectiveStroke || state.effectiveStroke.length < 2) {
+        clearDistribution('請畫出至少包含兩個座標點的一筆曲線。');
+        return false;
+      }
+
+      const sampled = sampleStrokeHeights(state.effectiveStroke, cfg.sampleCount);
+      if (sampled.hasMultipleY) {
+        clearDistribution('同一個 x 對應到多個 y，這不是有效的一維分布函數。請按重繪並畫出每個 x 只有一個高度的曲線。');
+        return false;
+      }
+      const heights = sampled.heights;
+      const total = heights.reduce((sum, h) => sum + h, 0);
+      if (!Number.isFinite(total) || total <= 0) {
+        clearDistribution('曲線高度總和為 0，請按重繪並畫出高於 x 軸的曲線。');
+        return false;
+      }
+
+      state.pmf = heights.map((h) => h / total);
+      const step = (cfg.xMax - cfg.xMin) / Math.max(1, cfg.sampleCount - 1);
+      state.xGrid = Array.from({ length: cfg.sampleCount }, (_, i) => cfg.xMin + i * step);
+      const stats = computeStats(state.pmf, state.xGrid);
+      state.mean1 = stats.mean;
+      state.sd1 = stats.sd;
+      els.mean1.textContent = formatNumber(state.mean1);
+      els.sd1.textContent = formatNumber(state.sd1);
+      setStatus('PMF 已建立，可調整 n 觀察相加分布。', 'ok');
+      renderDrawCanvas();
+      scheduleConvolution();
+      return true;
+    }
+
+    function clearDistribution(message) {
+      state.pmf = null;
+      state.xGrid = [];
+      state.mean1 = NaN;
+      state.sd1 = NaN;
+      els.mean1.textContent = '尚未建立 PMF';
+      els.sd1.textContent = '尚未建立 PMF';
+      els.meanN.textContent = '尚未建立 PMF';
+      els.sdN.textContent = '尚未建立 PMF';
+      els.theoryMean.textContent = '尚未建立 PMF';
+      els.theorySd.textContent = '尚未建立 PMF';
+      setStatus(message, 'error');
+      renderDrawCanvas();
+      renderSumCanvas(null);
+    }
+
+    function computeStats(pmf, grid) {
+      let mean = 0;
+      for (let i = 0; i < pmf.length; i++) mean += grid[i] * pmf[i];
+      let variance = 0;
+      for (let i = 0; i < pmf.length; i++) {
+        const d = grid[i] - mean;
+        variance += d * d * pmf[i];
+      }
+      return { mean, sd: Math.sqrt(Math.max(0, variance)) };
+    }
+
+    function convolve(a, b) {
+      const out = new Float64Array(a.length + b.length - 1);
+      for (let i = 0; i < a.length; i++) {
+        const ai = a[i];
+        if (ai === 0) continue;
+        for (let j = 0; j < b.length; j++) out[i + j] += ai * b[j];
+      }
+      return out;
+    }
+
+    function normalizeArray(arr) {
+      let sum = 0;
+      for (let i = 0; i < arr.length; i++) sum += arr[i];
+      if (sum > 0 && Number.isFinite(sum)) {
+        for (let i = 0; i < arr.length; i++) arr[i] /= sum;
+      }
+      return arr;
+    }
+
+    function sleepFrame() {
+      return new Promise((resolve) => setTimeout(resolve, 0));
+    }
+
+    function updateProgress(active, value = 0) {
+      els.progress.classList.toggle('active', active);
+      els.progressBar.style.width = `${Math.max(0, Math.min(100, value))}%`;
+    }
+
+    async function scheduleConvolution() {
+      const token = ++state.convolutionToken;
+      if (!state.pmf) return;
+      const cfg = readConfig();
+      if (cfg.errors.length) return;
+
+      let n = Math.floor(Number(els.nSlider.value));
+      n = Math.min(Math.max(1, n), cfg.nMax);
+      els.nSlider.value = String(n);
+      els.nValue.textContent = String(n);
+
+      const operations = (n - 1) * state.pmf.length * Math.max(1, state.pmf.length);
+      if (operations > 25000000) {
+        setStatus('運算量偏大，正在分段計算以維持介面可回應。', 'warn');
+      }
+      updateProgress(n > 1, 0);
+      els.sumNote.textContent = n > 1 ? '計算中...' : '顯示原始 PMF';
+
+      let dist = Float64Array.from(state.pmf);
+      const base = Float64Array.from(state.pmf);
+      for (let k = 2; k <= n; k++) {
+        if (token !== state.convolutionToken) return;
+        dist = normalizeArray(convolve(dist, base));
+        updateProgress(true, ((k - 1) / Math.max(1, n - 1)) * 100);
+        if (k % 1 === 0) await sleepFrame();
+      }
+
+      if (token !== state.convolutionToken) return;
+      updateProgress(false);
+      state.latestDist = dist;
+
+      const step = (cfg.xMax - cfg.xMin) / Math.max(1, cfg.sampleCount - 1);
+      const grid = Array.from({ length: dist.length }, (_, i) => n * cfg.xMin + i * step);
+      const stats = computeStats(dist, grid);
+      els.meanN.textContent = formatNumber(stats.mean);
+      els.sdN.textContent = formatNumber(stats.sd);
+      els.theoryMean.textContent = formatNumber(n * state.mean1);
+      els.theorySd.textContent = formatNumber(Math.sqrt(n) * state.sd1);
+      els.sumNote.textContent = `x 範圍：[${formatNumber(n * cfg.xMin)}, ${formatNumber(n * cfg.xMax)}]`;
+      renderSumCanvas({ dist, grid, xMin: n * cfg.xMin, xMax: n * cfg.xMax });
+      if (operations <= 25000000) setStatus('PMF 與卷積結果已更新。', 'ok');
+    }
+
+    function renderSumCanvas(payload) {
+      const size = resizeCanvas(els.sumCanvas, sumCtx);
+      clearCanvas(sumCtx, size);
+      const cfg = readConfig();
+      const n = Math.floor(Number(els.nSlider.value));
+      const left = Number.isFinite(cfg.xMin) ? n * cfg.xMin : 0;
+      const right = Number.isFinite(cfg.xMax) ? n * cfg.xMax : 1;
+      drawAxes(sumCtx, size, left, right, 'probability');
+      if (!payload || !payload.dist) return;
+
+      const area = plotArea(size);
+      const dist = payload.dist;
+      let maxP = 0;
+      for (let i = 0; i < dist.length; i++) maxP = Math.max(maxP, dist[i]);
+      if (maxP <= 0) return;
+      sumCtx.save();
+      sumCtx.fillStyle = cssVar('--accent');
+      const stride = Math.max(1, Math.floor(dist.length / 2000));
+      const radius = dist.length > 700 ? 1.35 : 2.2;
+      for (let i = 0; i < dist.length; i += stride) {
+        if (dist[i] <= 0) continue;
+        const x = area.x + (i / Math.max(1, dist.length - 1)) * area.w;
+        const y = area.bottom - (dist[i] / maxP) * area.h;
+        sumCtx.beginPath();
+        sumCtx.arc(x, y, radius, 0, Math.PI * 2);
+        sumCtx.fill();
+      }
+      sumCtx.restore();
+    }
+
+    function updateConfigLabels(cfg = readConfig()) {
+      els.nMaxLabel.textContent = Number.isFinite(cfg.nMax) ? String(cfg.nMax) : '-';
+      els.rangeLabel.textContent = `[${formatNumber(cfg.xMin)}, ${formatNumber(cfg.xMax)}]`;
+      if (Number.isFinite(cfg.xMin) && Number.isFinite(cfg.xMax) && cfg.sampleCount >= 2) {
+        els.stepLabel.textContent = formatNumber((cfg.xMax - cfg.xMin) / (cfg.sampleCount - 1));
+      } else {
+        els.stepLabel.textContent = '-';
+      }
+    }
+
+    function updateSliderBounds() {
+      const cfg = readConfig();
+      if (Number.isFinite(cfg.nMax) && cfg.nMax >= 1) {
+        els.nSlider.max = String(cfg.nMax);
+        if (Number(els.nSlider.value) > cfg.nMax) els.nSlider.value = String(cfg.nMax);
+      }
+      if (Number(els.nSlider.value) < 1) els.nSlider.value = '1';
+      els.nValue.textContent = els.nSlider.value;
+      updateConfigLabels(cfg);
+    }
+
+    function onPointerDown(event) {
+      if (!state.editing) return;
+      state.drawing = true;
+      state.pendingStroke = [normalizedPoint(event, els.drawCanvas)];
+      els.drawCanvas.setPointerCapture(event.pointerId);
+      renderDrawCanvas();
+    }
+
+    function onPointerMove(event) {
+      if (!state.editing || !state.drawing || !state.pendingStroke) return;
+      const pt = normalizedPoint(event, els.drawCanvas);
+      const last = state.pendingStroke[state.pendingStroke.length - 1];
+      const dx = pt.nx - last.nx;
+      const dy = pt.height - last.height;
+      if (Math.hypot(dx, dy) > 0.002) {
+        state.pendingStroke.push(pt);
+        renderDrawCanvas();
+      }
+    }
+
+    function finishStroke(event) {
+      if (!state.editing || !state.drawing) return;
+      state.drawing = false;
+      try {
+        els.drawCanvas.releasePointerCapture(event.pointerId);
+      } catch (_) {
+        // Some browsers release automatically on cancel.
+      }
+      if (!state.pendingStroke || state.pendingStroke.length < 2) {
+        setStatus('空白筆劃無法建立分布，請再畫一次。', 'error');
+        state.pendingStroke = null;
+        renderDrawCanvas();
+        return;
+      }
+      state.effectiveStroke = state.pendingStroke;
+      state.pendingStroke = null;
+      state.editing = false;
+      els.redrawBtn.textContent = '重繪';
+      buildPmfFromStroke();
+    }
+
+    function toggleRedraw() {
+      if (state.editing) {
+        state.editing = false;
+        state.drawing = false;
+        state.pendingStroke = null;
+        els.redrawBtn.textContent = '重繪';
+        setStatus(state.pmf ? '已取消重繪，保留目前 PMF。' : '請按重繪後畫出分布曲線。', state.pmf ? 'ok' : '');
+        renderDrawCanvas();
+        return;
+      }
+      state.editing = true;
+      state.pendingStroke = null;
+      els.redrawBtn.textContent = '取消重繪';
+      setStatus('重繪模式已開啟，舊 PMF 會保留到新筆劃完成。');
+      renderDrawCanvas();
+    }
+
+    function onConfigChange() {
+      updateSliderBounds();
+      if (state.effectiveStroke) buildPmfFromStroke();
+      else {
+        updateConfigLabels();
+        renderDrawCanvas();
+        renderSumCanvas(null);
+      }
+    }
+
+    els.drawCanvas.addEventListener('pointerdown', onPointerDown);
+    els.drawCanvas.addEventListener('pointermove', onPointerMove);
+    els.drawCanvas.addEventListener('pointerup', finishStroke);
+    els.drawCanvas.addEventListener('pointercancel', finishStroke);
+    els.redrawBtn.addEventListener('click', toggleRedraw);
+    els.nSlider.addEventListener('input', () => {
+      els.nValue.textContent = els.nSlider.value;
+      scheduleConvolution();
+    });
+    [els.xMin, els.xMax, els.sampleCount, els.nMax].forEach((input) => {
+      input.addEventListener('change', onConfigChange);
+      input.addEventListener('input', () => {
+        if (input === els.nMax) updateSliderBounds();
+      });
+    });
+
+    window.addEventListener('resize', () => {
+      renderDrawCanvas();
+      if (state.latestDist) {
+        const cfg = readConfig();
+        const n = Math.floor(Number(els.nSlider.value));
+        renderSumCanvas({ dist: state.latestDist, xMin: n * cfg.xMin, xMax: n * cfg.xMax });
+      } else {
+        renderSumCanvas(null);
+      }
+    });
+
+    updateSliderBounds();
+    renderDrawCanvas();
+    renderSumCanvas(null);
+  </script>
+</body>
+</html>

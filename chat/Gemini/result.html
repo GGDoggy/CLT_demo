@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>互動式中央極限定理：手繪 PDF 與 n 重和分布 Demo</title>
+  <style>
+    :root {
+      --primary-color: #2563eb;
+      --primary-hover: #1d4ed8;
+      --secondary-color: #475569;
+      --bg-color: #f8fafc;
+      --card-bg: #ffffff;
+      --border-color: #e2e8f0;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+      --danger-color: #ef4444;
+      --success-color: #10b981;
+      --canvas-bg: #ffffff;
+      --grid-color: #f1f5f9;
+      --axis-color: #94a3b8;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      padding: 1rem;
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 1000px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+
+    header {
+      background: var(--card-bg);
+      padding: 1.25rem 1.5rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    header h1 {
+      font-size: 1.4rem;
+      margin-bottom: 0.5rem;
+      color: var(--primary-color);
+    }
+
+    header p {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+    }
+
+    .card {
+      background: var(--card-bg);
+      padding: 1.25rem;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .controls-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .input-group {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    .input-group label {
+      font-weight: 500;
+      color: var(--secondary-color);
+    }
+
+    .input-group input[type="number"] {
+      width: 80px;
+      padding: 0.4rem 0.6rem;
+      border: 1px solid var(--border-color);
+      border-radius: 6px;
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .input-group input[type="number"]:focus {
+      border-color: var(--primary-color);
+    }
+
+    .btn {
+      padding: 0.4rem 1rem;
+      background-color: var(--primary-color);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .btn:hover {
+      background-color: var(--primary-hover);
+    }
+
+    .btn:disabled {
+      background-color: var(--axis-color);
+      cursor: not-allowed;
+    }
+
+    .btn-secondary {
+      background-color: var(--secondary-color);
+    }
+
+    .btn-secondary:hover {
+      background-color: #334155;
+    }
+
+    .canvas-container {
+      position: relative;
+      width: 100%;
+      height: 260px;
+      background: var(--canvas-bg);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      overflow: hidden;
+      touch-action: none;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    .status-bar {
+      font-size: 0.85rem;
+      padding: 0.4rem 0.8rem;
+      border-radius: 6px;
+      background-color: #eff6ff;
+      color: #1e40af;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .status-bar.error {
+      background-color: #fef2f2;
+      color: #991b1b;
+    }
+
+    .status-bar.warning {
+      background-color: #fffbeb;
+      color: #92400e;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 0.75rem;
+      background: #f8fafc;
+      padding: 0.75rem;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+    }
+
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .stat-value {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--text-main);
+      font-family: monospace;
+    }
+
+    .slider-container {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-grow: 1;
+    }
+
+    .slider-container input[type="range"] {
+      flex-grow: 1;
+      height: 6px;
+      border-radius: 3px;
+      accent-color: var(--primary-color);
+      cursor: pointer;
+    }
+
+    .error-msg {
+      font-size: 0.8rem;
+      color: var(--danger-color);
+      margin-top: 0.2rem;
+    }
+
+    @media (max-width: 640px) {
+      body {
+        padding: 0.5rem;
+      }
+      .controls-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .input-group {
+        justify-content: space-between;
+      }
+      .canvas-container {
+        height: 220px;
+      }
+      .stats-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>互動式中央極限定理：手繪 PDF 與 n 重和分布 Demo</h1>
+    <p>在上方手繪框中由左向右繪製任意連續機率密度函數 (PDF)。調整 $n$ 滑桿觀察獨立同分布隨機變數之和 $S_n = X_1 + \dots + X_n$ 的形狀與統計特性變化。</p>
+  </header>
+
+  <!-- 區塊一：原始分布 -->
+  <div class="card">
+    <div class="card-title">
+      <span>原始分布 ($X$)</span>
+      <button id="redrawBtn" class="btn btn-secondary">重繪</button>
+    </div>
+
+    <div class="controls-row">
+      <div class="input-group">
+        <label for="xminInput">x_min:</label>
+        <input type="number" id="xminInput" value="0" step="any">
+      </div>
+      <div class="input-group">
+        <label for="xmaxInput">x_max:</label>
+        <input type="number" id="xmaxInput" value="10" step="any">
+      </div>
+      <div id="rangeError" class="error-msg" style="display:none;"></div>
+    </div>
+
+    <div class="canvas-container" id="canvas1Container">
+      <canvas id="canvas1"></canvas>
+    </div>
+
+    <div id="status1" class="status-bar">
+      <span>請由左向右畫出機率密度曲線...</span>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-item">
+        <span class="stat-label">期望值 E[X]</span>
+        <span id="statE_X" class="stat-value">-</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">標準差 SD(X)</span>
+        <span id="statSD_X" class="stat-value">-</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">數值曲線面積</span>
+        <span id="statArea_X" class="stat-value">-</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 區塊二：相加控制與分布結果 -->
+  <div class="card">
+    <div class="card-title">
+      <span id="sumTitle">相加分布 ($S_n = X_1 + \dots + X_n$), n = 2</span>
+      <span id="calcStatus" style="font-size: 0.85rem; color: var(--text-muted); font-weight: normal;"></span>
+    </div>
+
+    <div class="controls-row">
+      <div class="slider-container">
+        <label for="nSlider" style="font-size: 0.9rem; font-weight: 500;">n = <span id="nValDisplay">2</span></label>
+        <input type="range" id="nSlider" min="2" max="30" value="2" step="1">
+      </div>
+      <div class="input-group">
+        <label for="nmaxInput">n_max:</label>
+        <input type="number" id="nmaxInput" value="30" min="2" max="100" step="1">
+      </div>
+      <div id="nmaxError" class="error-msg" style="display:none;"></div>
+    </div>
+
+    <div class="canvas-container" id="canvas2Container">
+      <canvas id="canvas2"></canvas>
+    </div>
+
+    <div class="stats-grid">
+      <div class="stat-item">
+        <span class="stat-label">卷積期望值 E[S_n]</span>
+        <span id="statE_Sn" class="stat-value">-</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">理論期望值 nE[X]</span>
+        <span id="statTE_Sn" class="stat-value">-</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">卷積標準差 SD(S_n)</span>
+        <span id="statSD_Sn" class="stat-value">-</span>
+      </div>
+      <div class="stat-item">
+        <span class="stat-label">理論標準差 √n SD(X)</span>
+        <span id="statTSD_Sn" class="stat-value">-</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/**
+ * -------------------------------------------------------------------
+ * Web Worker 代碼（FFT 離散卷積計算）
+ * -------------------------------------------------------------------
+ */
+const workerCode = `
+self.onmessage = function(e) {
+  const { taskId, p, n, dx, xmin, xmax } = e.data;
+  const M = p.length;
+  const targetLength = n * (M - 1) + 1;
+
+  // 尋找下一個 2 的次方
+  let N = 1;
+  while (N < targetLength) N *= 2;
+
+  // 建立複數陣列 (實部與虛部)
+  const real = new Float64Array(N);
+  const imag = new Float64Array(N);
+  for (let i = 0; i < M; i++) real[i] = p[i];
+
+  // FFT 正向變換
+  fft(real, imag, false);
+
+  // 頻域取 n 次方: (r e^{i theta})^n = r^n e^{i n theta}
+  for (let i = 0; i < N; i++) {
+    const re = real[i];
+    const im = imag[i];
+    const r = Math.hypot(re, im);
+    const theta = Math.atan2(im, re);
+    const rN = Math.pow(r, n);
+    const thetaN = theta * n;
+    real[i] = rN * Math.cos(thetaN);
+    imag[i] = rN * Math.sin(thetaN);
+  }
+
+  // Inverse FFT
+  fft(real, imag, true);
+
+  // 取實部、截斷極小負值、並裁剪至正確支撐長度
+  const resMass = new Float64Array(targetLength);
+  let totalMass = 0;
+  for (let i = 0; i < targetLength; i++) {
+    let val = real[i];
+    if (val < 0) val = 0;
+    resMass[i] = val;
+    totalMass += val;
+  }
+
+  // 重新正規化質量，確保總和為 1
+  if (totalMass > 0) {
+    for (let i = 0; i < targetLength; i++) {
+      resMass[i] /= totalMass;
+    }
+  }
+
+  // 轉回機率密度 density = mass / dx
+  const density = new Float64Array(targetLength);
+  for (let i = 0; i < targetLength; i++) {
+    density[i] = resMass[i] / dx;
+  }
+
+  // 計算卷積結果的期望值與標準差
+  let E_Sn = 0;
+  let E_Sn2 = 0;
+  const snMin = n * xmin;
+  for (let i = 0; i < targetLength; i++) {
+    const x = snMin + i * dx;
+    const prob = resMass[i];
+    E_Sn += x * prob;
+    E_Sn2 += x * x * prob;
+  }
+  let var_Sn = E_Sn2 - E_Sn * E_Sn;
+  if (var_Sn < 0) var_Sn = 0;
+  const SD_Sn = Math.sqrt(var_Sn);
+
+  self.postMessage({
+    taskId,
+    n,
+    density,
+    targetLength,
+    E_Sn,
+    SD_Sn,
+    snMin,
+    snMax: n * xmax
+  }, [density.buffer]);
+};
+
+function fft(real, imag, inverse) {
+  const n = real.length;
+  for (let i = 0; i < n; i++) {
+    let j = bitReverse(i, Math.log2(n));
+    if (j > i) {
+      let tempR = real[i]; real[i] = real[j]; real[j] = tempR;
+      let tempI = imag[i]; imag[i] = imag[j]; imag[j] = tempI;
+    }
+  }
+
+  for (let len = 2; len <= n; len <<= 1) {
+    const halfLen = len >> 1;
+    const angle = (2 * Math.PI / len) * (inverse ? 1 : -1);
+    const wStepR = Math.cos(angle);
+    const wStepI = Math.sin(angle);
+
+    for (let i = 0; i < n; i += len) {
+      let wR = 1;
+      let wI = 0;
+      for (let j = 0; j < halfLen; j++) {
+        const uR = real[i + j];
+        const uI = imag[i + j];
+        const vR = real[i + j + halfLen] * wR - imag[i + j + halfLen] * wI;
+        const vI = real[i + j + halfLen] * wI + imag[i + j + halfLen] * wR;
+
+        real[i + j] = uR + vR;
+        imag[i + j] = uI + vI;
+        real[i + j + halfLen] = uR - vR;
+        imag[i + j + halfLen] = uI - vI;
+
+        const nextWR = wR * wStepR - wI * wStepI;
+        const nextWI = wR * wStepI + wI * wStepR;
+        wR = nextWR;
+        wI = nextWI;
+      }
+    }
+  }
+
+  if (inverse) {
+    for (let i = 0; i < n; i++) {
+      real[i] /= n;
+      imag[i] /= n;
+    }
+  }
+}
+
+function bitReverse(state, bits) {
+  let result = 0;
+  for (let i = 0; i < bits; i++) {
+    result = (result << 1) | (state & 1);
+    state >>= 1;
+  }
+  return result;
+}
+`;
+
+const blob = new Blob([workerCode], { type: 'application/javascript' });
+const worker = new Worker(URL.createObjectURL(blob));
+
+/**
+ * -------------------------------------------------------------------
+ * 全域狀態管理與設定
+ * -------------------------------------------------------------------
+ */
+const GRID_POINTS = 1024; // 原始 PDF 高解析取樣點數
+let state = {
+  xmin: 0,
+  xmax: 10,
+  n: 2,
+  nmax: 30,
+  
+  // 手繪狀態
+  isDrawing: false,
+  isLocked: false,
+  isRedrawMode: false,
+  rawStroke: [], // [{u, h}] relative coordinates
+  
+  // 當前有效的 PDF 資料
+  pdfData: null, // { uArray, fArray, E_X, SD_X, area, dx }
+  oldPdfData: null, // 重繪時備份的舊 PDF
+  
+  // 快取
+  convolutionCache: new Map(), // n -> worker response
+  currentTaskId: 0
+};
+
+// DOM 元素引用
+const elements = {
+  xmin: document.getElementById('xminInput'),
+  xmax: document.getElementById('xmaxInput'),
+  rangeError: document.getElementById('rangeError'),
+  redrawBtn: document.getElementById('redrawBtn'),
+  canvas1: document.getElementById('canvas1'),
+  canvas2: document.getElementById('canvas2'),
+  status1: document.getElementById('status1'),
+  nSlider: document.getElementById('nSlider'),
+  nValDisplay: document.getElementById('nValDisplay'),
+  nmaxInput: document.getElementById('nmaxInput'),
+  nmaxError: document.getElementById('nmaxError'),
+  calcStatus: document.getElementById('calcStatus'),
+  sumTitle: document.getElementById('sumTitle'),
+  
+  // Stats DOM
+  statE_X: document.getElementById('statE_X'),
+  statSD_X: document.getElementById('statSD_X'),
+  statArea_X: document.getElementById('statArea_X'),
+  statE_Sn: document.getElementById('statE_Sn'),
+  statTE_Sn: document.getElementById('statTE_Sn'),
+  statSD_Sn: document.getElementById('statSD_Sn'),
+  statTSD_Sn: document.getElementById('statTSD_Sn')
+};
+
+/**
+ * -------------------------------------------------------------------
+ * 初始化與 Canvas 解析度校正
+ * -------------------------------------------------------------------
+ */
+function initCanvas(canvas) {
+  const rect = canvas.parentElement.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  const ctx = canvas.getContext('2d');
+  ctx.scale(dpr, dpr);
+  return { ctx, width: rect.width, height: rect.height };
+}
+
+window.addEventListener('resize', () => {
+  renderCanvas1();
+  renderCanvas2();
+});
+
+/**
+ * -------------------------------------------------------------------
+ * 筆畫處理與數值積分 / 正規化
+ * -------------------------------------------------------------------
+ */
+function processStroke(stroke) {
+  if (!stroke || stroke.length < 2) return { valid: false, reason: "筆畫太短，無法計算" };
+
+  // 判斷回頭: 水平 u 座標不允許顯著減少 (> 約 3 CSS 像素折算相對值)
+  const rect = elements.canvas1.parentElement.getBoundingClientRect();
+  const toleranceU = 3 / rect.width;
+  let maxU = stroke[0].u;
+
+  for (let i = 1; i < stroke.length; i++) {
+    if (stroke[i].u < maxU - toleranceU) {
+      return { valid: false, reason: "筆畫明顯向左回頭，請重新由左向右繪製" };
+    }
+    if (stroke[i].u > maxU) maxU = stroke[i].u;
+  }
+
+  // 重採樣成均勻網格 GRID_POINTS
+  const uGrid = new Float64Array(GRID_POINTS);
+  const gGrid = new Float64Array(GRID_POINTS);
+  const step = 1 / (GRID_POINTS - 1);
+  for (let i = 0; i < GRID_POINTS; i++) uGrid[i] = i * step;
+
+  // 找筆畫的涵蓋範圍 [uMin, uMax]
+  const strokeUMin = stroke[0].u;
+  const strokeUMax = stroke[stroke.length - 1].u;
+
+  if (strokeUMax - strokeUMin < 1e-4) {
+    return { valid: false, reason: "筆畫水平長度過短" };
+  }
+
+  // 線性插值
+  let ptr = 0;
+  for (let i = 0; i < GRID_POINTS; i++) {
+    const u = uGrid[i];
+    if (u < strokeUMin || u > strokeUMax) {
+      gGrid[i] = 0;
+    } else {
+      while (ptr < stroke.length - 1 && stroke[ptr + 1].u < u) ptr++;
+      if (ptr >= stroke.length - 1) {
+        gGrid[i] = stroke[stroke.length - 1].h;
+      } else {
+        const p1 = stroke[ptr];
+        const p2 = stroke[ptr + 1];
+        const t = (u - p1.u) / (p2.u - p1.u);
+        gGrid[i] = p1.h + t * (p2.h - p1.h);
+      }
+    }
+  }
+
+  // 梯形法計算未正規化面積 (在 x 軸上)
+  const dx = (state.xmax - state.xmin) / (GRID_POINTS - 1);
+  let rawArea = 0;
+  for (let i = 0; i < GRID_POINTS - 1; i++) {
+    rawArea += (gGrid[i] + gGrid[i + 1]) * 0.5 * dx;
+  }
+
+  if (!isFinite(rawArea) || rawArea <= 1e-12) {
+    return { valid: false, reason: "筆畫完全位於 x 軸上或有效面積為 0" };
+  }
+
+  // 正規化 density f(x)
+  const fGrid = new Float64Array(GRID_POINTS);
+  for (let i = 0; i < GRID_POINTS; i++) {
+    fGrid[i] = gGrid[i] / rawArea;
+  }
+
+  // 期望值 E[X] 與標準差 SD[X]
+  let E_X = 0;
+  let E_X2 = 0;
+  let normArea = 0;
+  for (let i = 0; i < GRID_POINTS - 1; i++) {
+    const x1 = state.xmin + uGrid[i] * (state.xmax - state.xmin);
+    const x2 = state.xmin + uGrid[i+1] * (state.xmax - state.xmin);
+    const f1 = fGrid[i];
+    const f2 = fGrid[i+1];
+    
+    const a = (f1 + f2) * 0.5 * dx;
+    normArea += a;
+    
+    const xMid = (x1 + x2) * 0.5;
+    E_X += xMid * a;
+    E_X2 += xMid * xMid * a;
+  }
+
+  let var_X = E_X2 - E_X * E_X;
+  if (var_X < 0) var_X = 0;
+  const SD_X = Math.sqrt(var_X);
+
+  return {
+    valid: true,
+    pdfData: {
+      uArray: uGrid,
+      fArray: fGrid,
+      E_X,
+      SD_X,
+      area: normArea,
+      dx
+    }
+  };
+}
+
+/**
+ * -------------------------------------------------------------------
+ * 手繪 Canvas 事件監聽 (Pointer Events)
+ * -------------------------------------------------------------------
+ */
+const canvas1El = elements.canvas1;
+
+canvas1El.addEventListener('pointerdown', (e) => {
+  if (state.isLocked && !state.isRedrawMode) return;
+  canvas1El.setPointerCapture(e.pointerId);
+  state.isDrawing = true;
+  state.rawStroke = [];
+  
+  const rect = canvas1El.getBoundingClientRect();
+  const u = (e.clientX - rect.left) / rect.width;
+  const h = Math.max(0, (rect.height - (e.clientY - rect.top)) / rect.height);
+  state.rawStroke.push({ u, h });
+
+  setStatus1("正在繪製分布...", "normal");
+  renderCanvas1();
+});
+
+canvas1El.addEventListener('pointermove', (e) => {
+  if (!state.isDrawing) return;
+  const rect = canvas1El.getBoundingClientRect();
+  const u = (e.clientX - rect.left) / rect.width;
+  const h = Math.max(0, (rect.height - (e.clientY - rect.top)) / rect.height);
+  state.rawStroke.push({ u, h });
+  renderCanvas1();
+});
+
+const endDrawing = (e) => {
+  if (!state.isDrawing) return;
+  state.isDrawing = false;
+
+  const result = processStroke(state.rawStroke);
+  if (result.valid) {
+    state.pdfData = result.pdfData;
+    state.isLocked = true;
+    state.isRedrawMode = false;
+    state.oldPdfData = null;
+    elements.redrawBtn.textContent = "重繪";
+    elements.redrawBtn.disabled = false;
+    
+    setStatus1("分布已成功正規化並鎖定", "success");
+    clearConvolutionCache();
+    updateAll();
+  } else {
+    setStatus1(result.reason, "error");
+    renderCanvas1();
+  }
+};
+
+canvas1El.addEventListener('pointerup', endDrawing);
+canvas1El.addEventListener('pointercancel', endDrawing);
+
+/**
+ * -------------------------------------------------------------------
+ * UI 操作邏輯與控制器綁定
+ * -------------------------------------------------------------------
+ */
+elements.redrawBtn.addEventListener('click', () => {
+  if (state.isRedrawMode) {
+    // 取消重繪
+    state.isRedrawMode = false;
+    state.pdfData = state.oldPdfData;
+    state.oldPdfData = null;
+    elements.redrawBtn.textContent = "重繪";
+    setStatus1("已取消重繪，恢復原本分布", "normal");
+    renderCanvas1();
+  } else {
+    // 開始重繪模式
+    state.isRedrawMode = true;
+    state.oldPdfData = state.pdfData;
+    elements.redrawBtn.textContent = "取消重繪";
+    setStatus1("請由左向右畫出新的分布", "warning");
+    renderCanvas1();
+  }
+});
+
+// xmin / xmax 變更
+function handleRangeChange() {
+  const xmin = parseFloat(elements.xmin.value);
+  const xmax = parseFloat(elements.xmax.value);
+
+  if (isNaN(xmin) || isNaN(xmax)) {
+    showRangeError("x 軸範圍必須為有效的數字");
+    return;
+  }
+  if (xmin >= xmax) {
+    showRangeError("x 軸最小值必須嚴格小於最大值");
+    return;
+  }
+
+  showRangeError(null);
+  state.xmin = xmin;
+  state.xmax = xmax;
+
+  // 若已有筆畫，依新範圍重新映射與正規化
+  if (state.rawStroke.length > 0) {
+    const res = processStroke(state.rawStroke);
+    if (res.valid) {
+      state.pdfData = res.pdfData;
+      clearConvolutionCache();
+      updateAll();
+    }
+  } else {
+    renderCanvas1();
+    renderCanvas2();
+  }
+}
+
+elements.xmin.addEventListener('change', handleRangeChange);
+elements.xmax.addEventListener('change', handleRangeChange);
+
+function showRangeError(msg) {
+  if (msg) {
+    elements.rangeError.textContent = msg;
+    elements.rangeError.style.display = 'block';
+  } else {
+    elements.rangeError.style.display = 'none';
+  }
+}
+
+// n 滑桿變更
+elements.nSlider.addEventListener('input', (e) => {
+  state.n = parseInt(e.target.value, 10);
+  elements.nValDisplay.textContent = state.n;
+  elements.sumTitle.textContent = `相加分布 (S_n = X_1 + ... + X_n), n = ${state.n}`;
+  triggerConvolution();
+});
+
+// nmax 變更
+elements.nmaxInput.addEventListener('change', () => {
+  const nmax = parseInt(elements.nmaxInput.value, 10);
+  if (isNaN(nmax) || nmax < 2 || nmax > 100) {
+    elements.nmaxError.textContent = "n_max 必須為 2 至 100 之間的整數";
+    elements.nmaxError.style.display = 'block';
+    return;
+  }
+  elements.nmaxError.style.display = 'none';
+  state.nmax = nmax;
+  elements.nSlider.max = nmax;
+
+  if (state.n > nmax) {
+    state.n = nmax;
+    elements.nSlider.value = nmax;
+    elements.nValDisplay.textContent = nmax;
+    elements.sumTitle.textContent = `相加分布 (S_n = X_1 + ... + X_n), n = ${state.n}`;
+  }
+
+  clearConvolutionCache();
+  triggerConvolution();
+});
+
+/**
+ * -------------------------------------------------------------------
+ * Worker 溝通與卷積計算發送
+ * -------------------------------------------------------------------
+ */
+function clearConvolutionCache() {
+  state.convolutionCache.clear();
+}
+
+function triggerConvolution() {
+  if (!state.pdfData) {
+    renderCanvas2();
+    return;
+  }
+
+  const n = state.n;
+
+  // 檢查快取
+  if (state.convolutionCache.has(n)) {
+    const cachedData = state.convolutionCache.get(n);
+    updateSumStatsAndPlot(cachedData);
+    return;
+  }
+
+  // 準備計算
+  elements.calcStatus.textContent = "計算中...";
+  state.currentTaskId++;
+  const taskId = state.currentTaskId;
+
+  // 將 PDF 密度轉為離散質量 p_i = f(x_i) * dx
+  const p = new Float64Array(GRID_POINTS);
+  for (let i = 0; i < GRID_POINTS; i++) {
+    p[i] = state.pdfData.fArray[i] * state.pdfData.dx;
+  }
+
+  worker.postMessage({
+    taskId,
+    p,
+    n,
+    dx: state.pdfData.dx,
+    xmin: state.xmin,
+    xmax: state.xmax
+  }, [p.buffer]);
+}
+
+worker.onmessage = function(e) {
+  const data = e.data;
+  // 版本控制：若有更新的計算需求已發送，棄用舊工作結果
+  if (data.taskId !== state.currentTaskId) return;
+
+  elements.calcStatus.textContent = "";
+  state.convolutionCache.set(data.n, data);
+  updateSumStatsAndPlot(data);
+};
+
+/**
+ * -------------------------------------------------------------------
+ * UI 狀態與統計顯示更新
+ * -------------------------------------------------------------------
+ */
+function setStatus1(msg, type) {
+  elements.status1.firstElementChild.textContent = msg;
+  elements.status1.className = 'status-bar ' + (type === 'error' ? 'error' : type === 'warning' ? 'warning' : '');
+}
+
+function updateAll() {
+  // 1. 更新原始分布統計
+  if (state.pdfData) {
+    elements.statE_X.textContent = state.pdfData.E_X.toFixed(3);
+    elements.statSD_X.textContent = state.pdfData.SD_X.toFixed(3);
+    elements.statArea_X.textContent = state.pdfData.area.toFixed(3);
+  } else {
+    elements.statE_X.textContent = "-";
+    elements.statSD_X.textContent = "-";
+    elements.statArea_X.textContent = "-";
+  }
+
+  // 2. 重新繪製圖一
+  renderCanvas1();
+
+  // 3. 觸發圖二計算
+  triggerConvolution();
+}
+
+function updateSumStatsAndPlot(convData) {
+  if (!state.pdfData || !convData) {
+    elements.statE_Sn.textContent = "-";
+    elements.statTE_Sn.textContent = "-";
+    elements.statSD_Sn.textContent = "-";
+    elements.statTSD_Sn.textContent = "-";
+    renderCanvas2();
+    return;
+  }
+
+  const n = convData.n;
+  const theoreticalE = n * state.pdfData.E_X;
+  const theoreticalSD = Math.sqrt(n) * state.pdfData.SD_X;
+
+  elements.statE_Sn.textContent = convData.E_Sn.toFixed(3);
+  elements.statTE_Sn.textContent = theoreticalE.toFixed(3);
+  elements.statSD_Sn.textContent = convData.SD_Sn.toFixed(3);
+  elements.statTSD_Sn.textContent = theoreticalSD.toFixed(3);
+
+  renderCanvas2(convData);
+}
+
+/**
+ * -------------------------------------------------------------------
+ * Canvas 繪圖渲染引擎
+ * -------------------------------------------------------------------
+ */
+
+// 降採樣函數：保持局部極值
+function downsample(xArray, yArray, maxPoints = 1500) {
+  const len = xArray.length;
+  if (len <= maxPoints) return { xRes: xArray, yRes: yArray };
+
+  const chunkSize = len / maxPoints;
+  const xRes = [];
+  const yRes = [];
+
+  for (let i = 0; i < maxPoints; i++) {
+    const start = Math.floor(i * chunkSize);
+    const end = Math.floor((i + 1) * chunkSize);
+    
+    let minVal = Infinity, maxVal = -Infinity;
+    let minIdx = start, maxIdx = start;
+
+    for (let j = start; j < end && j < len; j++) {
+      if (yArray[j] < minVal) { minVal = yArray[j]; minIdx = j; }
+      if (yArray[j] > maxVal) { maxVal = yArray[j]; maxIdx = j; }
+    }
+
+    if (minIdx < maxIdx) {
+      xRes.push(xArray[minIdx], xArray[maxIdx]);
+      yRes.push(yArray[minIdx], yArray[maxIdx]);
+    } else {
+      xRes.push(xArray[maxIdx], xArray[minIdx]);
+      yRes.push(yArray[maxIdx], yArray[minIdx]);
+    }
+  }
+
+  return { xRes: new Float64Array(xRes), yRes: new Float64Array(yRes) };
+}
+
+// 繪製圖表通用背景、網格與座標軸
+function drawAxes(ctx, width, height, xMin, xMax, yMax, padding) {
+  const plotW = width - padding.left - padding.right;
+  const plotH = height - padding.top - padding.bottom;
+
+  ctx.clearRect(0, 0, width, height);
+
+  // 網格線
+  ctx.strokeStyle = '#f1f5f9';
+  ctx.lineWidth = 1;
+  const xTicks = 5;
+  const yTicks = 4;
+
+  for (let i = 0; i <= xTicks; i++) {
+    const x = padding.left + (i / xTicks) * plotW;
+    ctx.beginPath();
+    ctx.moveTo(x, padding.top);
+    ctx.lineTo(x, height - padding.bottom);
+    ctx.stroke();
+
+    // X 軸刻度文字
+    const val = xMin + (i / xTicks) * (xMax - xMin);
+    ctx.fillStyle = '#64748b';
+    ctx.font = '10px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(formatNumber(val), x, height - padding.bottom + 15);
+  }
+
+  for (let i = 0; i <= yTicks; i++) {
+    const y = height - padding.bottom - (i / yTicks) * plotH;
+    ctx.beginPath();
+    ctx.moveTo(padding.left, y);
+    ctx.lineTo(width - padding.right, y);
+    ctx.stroke();
+
+    // Y 軸刻度文字
+    const val = (i / yTicks) * yMax;
+    ctx.fillStyle = '#64748b';
+    ctx.font = '10px sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(formatNumber(val), padding.left - 6, y + 3);
+  }
+
+  // 座標軸線
+  ctx.strokeStyle = '#94a3b8';
+  ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(padding.left, padding.top);
+  ctx.lineTo(padding.left, height - padding.bottom);
+  ctx.lineTo(width - padding.right, height - padding.bottom);
+  ctx.stroke();
+}
+
+function formatNumber(num) {
+  if (Math.abs(num) < 1e-3 && num !== 0) return num.toExponential(1);
+  if (Math.abs(num) >= 1000) return num.toExponential(1);
+  return num.toFixed(2);
+}
+
+// 繪製圖一：原始分布
+function renderCanvas1() {
+  const { ctx, width, height } = initCanvas(elements.canvas1);
+  const padding = { top: 20, right: 20, bottom: 30, left: 45 };
+  const plotW = width - padding.left - padding.right;
+  const plotH = height - padding.top - padding.bottom;
+
+  // 計算 yMax
+  let yMax = 1.0;
+  if (state.pdfData) {
+    let maxF = 0;
+    for (let i = 0; i < state.pdfData.fArray.length; i++) {
+      if (state.pdfData.fArray[i] > maxF) maxF = state.pdfData.fArray[i];
+    }
+    yMax = maxF * 1.15; // 留白 15%
+  } else if (state.isDrawing && state.rawStroke.length > 0) {
+    let maxH = 0;
+    for (let p of state.rawStroke) if (p.h > maxH) maxH = p.h;
+    yMax = Math.max(1.0, maxH * 1.15);
+  }
+
+  drawAxes(ctx, width, height, state.xmin, state.xmax, yMax, padding);
+
+  // 1. 若在重繪模式，繪製淡色舊曲線
+  if (state.isRedrawMode && state.oldPdfData) {
+    const oldPdf = state.oldPdfData;
+    ctx.beginPath();
+    ctx.strokeStyle = '#cbd5e1';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([4, 4]);
+
+    for (let i = 0; i < oldPdf.uArray.length; i++) {
+      const px = padding.left + oldPdf.uArray[i] * plotW;
+      const py = height - padding.bottom - (oldPdf.fArray[i] / yMax) * plotH;
+      if (i === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // 2. 繪製目前手繪筆畫 (正在繪製時)
+  if (state.isDrawing && state.rawStroke.length > 0) {
+    ctx.beginPath();
+    ctx.strokeStyle = '#f59e0b';
+    ctx.lineWidth = 2.5;
+
+    for (let i = 0; i < state.rawStroke.length; i++) {
+      const p = state.rawStroke[i];
+      const px = padding.left + p.u * plotW;
+      const py = height - padding.bottom - (p.h / yMax) * plotH;
+      if (i === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+  }
+
+  // 3. 繪製正規化後的正式 PDF 曲線
+  if (state.pdfData && !state.isDrawing) {
+    const pdf = state.pdfData;
+
+    // 填色區域
+    ctx.beginPath();
+    ctx.fillStyle = 'rgba(37, 99, 235, 0.15)';
+    ctx.moveTo(padding.left, height - padding.bottom);
+
+    for (let i = 0; i < pdf.uArray.length; i++) {
+      const px = padding.left + pdf.uArray[i] * plotW;
+      const py = height - padding.bottom - (pdf.fArray[i] / yMax) * plotH;
+      ctx.lineTo(px, py);
+    }
+    ctx.lineTo(padding.left + plotW, height - padding.bottom);
+    ctx.closePath();
+    ctx.fill();
+
+    // 實線
+    ctx.beginPath();
+    ctx.strokeStyle = '#2563eb';
+    ctx.lineWidth = 2.5;
+
+    for (let i = 0; i < pdf.uArray.length; i++) {
+      const px = padding.left + pdf.uArray[i] * plotW;
+      const py = height - padding.bottom - (pdf.fArray[i] / yMax) * plotH;
+      if (i === 0) ctx.moveTo(px, py);
+      else ctx.lineTo(px, py);
+    }
+    ctx.stroke();
+  }
+}
+
+// 繪製圖二：相加分布
+function renderCanvas2(convData = null) {
+  const { ctx, width, height } = initCanvas(elements.canvas2);
+  const padding = { top: 20, right: 20, bottom: 30, left: 45 };
+  const plotW = width - padding.left - padding.right;
+  const plotH = height - padding.top - padding.bottom;
+
+  if (!state.pdfData || !convData) {
+    // 尚未完成原始繪圖或無資料狀態
+    drawAxes(ctx, width, height, state.n * state.xmin, state.n * state.xmax, 1.0, padding);
+    ctx.fillStyle = '#94a3b8';
+    ctx.font = '14px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText("請先畫出有效的原始分布", width / 2, height / 2);
+    return;
+  }
+
+  const snMin = convData.snMin;
+  const snMax = convData.snMax;
+  const density = convData.density;
+
+  // 找最大 Y 值
+  let maxDensity = 0;
+  for (let i = 0; i < density.length; i++) {
+    if (density[i] > maxDensity) maxDensity = density[i];
+  }
+  const yMax = maxDensity * 1.15 || 1.0;
+
+  drawAxes(ctx, width, height, snMin, snMax, yMax, padding);
+
+  // 生成繪圖用點集並降採樣
+  const xArr = new Float64Array(density.length);
+  const dx = (snMax - snMin) / (density.length - 1);
+  for (let i = 0; i < density.length; i++) {
+    xArr[i] = snMin + i * dx;
+  }
+
+  const { xRes, yRes } = downsample(xArr, density, 1500);
+
+  // 填色區域
+  ctx.beginPath();
+  ctx.fillStyle = 'rgba(16, 185, 129, 0.15)';
+  ctx.moveTo(padding.left, height - padding.bottom);
+
+  for (let i = 0; i < xRes.length; i++) {
+    const u = (xRes[i] - snMin) / (snMax - snMin);
+    const px = padding.left + u * plotW;
+    const py = height - padding.bottom - (yRes[i] / yMax) * plotH;
+    ctx.lineTo(px, py);
+  }
+  ctx.lineTo(padding.left + plotW, height - padding.bottom);
+  ctx.closePath();
+  ctx.fill();
+
+  // 繪製連續曲線
+  ctx.beginPath();
+  ctx.strokeStyle = '#10b981';
+  ctx.lineWidth = 2.5;
+
+  for (let i = 0; i < xRes.length; i++) {
+    const u = (xRes[i] - snMin) / (snMax - snMin);
+    const px = padding.left + u * plotW;
+    const py = height - padding.bottom - (yRes[i] / yMax) * plotH;
+    if (i === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
+  }
+  ctx.stroke();
+}
+
+// 初始觸發一次渲染
+renderCanvas1();
+renderCanvas2();
+</script>
+</body>
+</html>
