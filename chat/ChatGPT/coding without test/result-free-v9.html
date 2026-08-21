@@ -1,0 +1,4372 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Interactive Central Limit Theorem Demo</title>
+
+<style>
+:root{
+  --bg:#f4f7fb;
+  --card:#fff;
+  --border:#d8e0ea;
+  --text:#172033;
+  --muted:#64748b;
+  --blue:#2563eb;
+  --red:#dc2626;
+  --green:#16a34a;
+  --orange:#ea580c;
+  --purple:#7c3aed;
+}
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:
+    system-ui,-apple-system,BlinkMacSystemFont,
+    "Segoe UI","Noto Sans TC",sans-serif;
+  background:var(--bg);
+  color:var(--text);
+}
+
+header{
+  background:#172033;
+  color:#fff;
+  padding:20px 24px;
+}
+
+header h1{
+  margin:0 0 5px;
+  font-size:24px;
+}
+
+header p{
+  margin:0;
+  color:#cbd5e1;
+  font-size:14px;
+}
+
+main{
+  max-width:1500px;
+  margin:auto;
+  padding:18px;
+}
+
+.layout{
+  display:grid;
+  grid-template-columns:minmax(280px,360px) 1fr;
+  gap:18px;
+}
+
+.controls{
+  display:flex;
+  flex-direction:column;
+  gap:16px;
+}
+
+.card{
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:12px;
+  padding:16px;
+  box-shadow:0 2px 8px rgba(15,23,42,.04);
+}
+
+.card h2{
+  margin:0 0 12px;
+  font-size:17px;
+}
+
+.card h3{
+  margin:16px 0 8px;
+  font-size:14px;
+}
+
+.control{
+  margin-bottom:12px;
+}
+
+.control:last-child{
+  margin-bottom:0;
+}
+
+label{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  font-size:13px;
+  margin-bottom:5px;
+  color:#334155;
+}
+
+input[type="number"],
+select{
+  width:100%;
+  padding:8px 9px;
+  border:1px solid #cbd5e1;
+  border-radius:7px;
+  background:#fff;
+  color:var(--text);
+  font-size:14px;
+}
+
+input[type="range"]{
+  width:100%;
+  accent-color:var(--blue);
+}
+
+.range-value{
+  font-weight:700;
+  color:var(--blue);
+}
+
+button{
+  border:0;
+  border-radius:7px;
+  padding:9px 13px;
+  font-size:13px;
+  cursor:pointer;
+  background:var(--blue);
+  color:#fff;
+}
+
+button:hover{
+  filter:brightness(.95);
+}
+
+button.secondary{background:#475569}
+button.green{background:var(--green)}
+button.orange{background:var(--orange)}
+
+button:disabled{
+  opacity:.45;
+  cursor:not-allowed;
+}
+
+.button-row{
+  display:flex;
+  flex-wrap:wrap;
+  gap:7px;
+}
+
+.switch-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin:10px 0;
+}
+
+.switch-row label{
+  margin:0;
+  display:block;
+}
+
+.switch{
+  position:relative;
+  width:44px;
+  height:24px;
+  flex:0 0 auto;
+}
+
+.switch input{
+  opacity:0;
+  width:0;
+  height:0;
+}
+
+.slider{
+  position:absolute;
+  inset:0;
+  background:#cbd5e1;
+  border-radius:20px;
+  cursor:pointer;
+  transition:.2s;
+}
+
+.slider:before{
+  content:"";
+  position:absolute;
+  width:18px;
+  height:18px;
+  left:3px;
+  top:3px;
+  background:#fff;
+  border-radius:50%;
+  transition:.2s;
+}
+
+.switch input:checked + .slider{
+  background:var(--blue);
+}
+
+.switch input:checked + .slider:before{
+  transform:translateX(20px);
+}
+
+.status{
+  font-size:12px;
+  padding:8px 10px;
+  border-radius:7px;
+  background:#f1f5f9;
+  color:#475569;
+}
+
+.status.ok{
+  background:#ecfdf5;
+  color:#166534;
+}
+
+.status.error{
+  background:#fef2f2;
+  color:#991b1b;
+}
+
+.status.busy{
+  background:#eff6ff;
+  color:#1d4ed8;
+}
+
+.stats{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:8px;
+  margin-top:12px;
+}
+
+.stat{
+  padding:9px;
+  background:#f8fafc;
+  border:1px solid #e2e8f0;
+  border-radius:7px;
+}
+
+.stat small{
+  display:block;
+  color:var(--muted);
+  font-size:11px;
+}
+
+.stat strong{
+  display:block;
+  margin-top:2px;
+  font-size:16px;
+}
+
+.charts{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:18px;
+}
+
+.chart-card{
+  min-width:0;
+}
+
+.chart-card.wide{
+  grid-column:1/-1;
+}
+
+.chart-wrap{
+  position:relative;
+  width:100%;
+  height:340px;
+}
+
+canvas{
+  display:block;
+  width:100%;
+  height:100%;
+  border-radius:8px;
+}
+
+#drawCanvas{
+  width:100%;
+  height:260px;
+  border:1px solid #94a3b8;
+  background:#fff;
+  touch-action:none;
+  cursor:crosshair;
+}
+
+.draw-axis{
+  display:flex;
+  justify-content:space-between;
+  color:#64748b;
+  font-size:11px;
+  padding:3px 2px 0;
+}
+
+.draw-hint{
+  margin:7px 0;
+  color:#64748b;
+  font-size:12px;
+  line-height:1.5;
+}
+
+.mode-badge{
+  display:inline-block;
+  padding:3px 8px;
+  border-radius:20px;
+  background:#dbeafe;
+  color:#1d4ed8;
+  font-size:11px;
+  font-weight:700;
+}
+
+.mode-badge.ising{
+  background:#fef3c7;
+  color:#92400e;
+}
+
+.ising-controls.disabled{
+  opacity:.45;
+  pointer-events:none;
+}
+
+.grid-preview{
+  display:grid;
+  gap:2px;
+  margin-top:10px;
+  background:#cbd5e1;
+  border:1px solid #cbd5e1;
+  max-height:260px;
+  overflow:hidden;
+}
+
+.spin-cell{
+  aspect-ratio:1;
+  min-width:2px;
+  background:#e2e8f0;
+}
+
+.spin-cell.pos{
+  background:#2563eb;
+}
+
+.spin-cell.neg{
+  background:#f97316;
+}
+
+.spin-cell.zero{
+  background:#cbd5e1;
+}
+
+.legend{
+  display:flex;
+  gap:14px;
+  margin-top:8px;
+  color:#64748b;
+  font-size:11px;
+}
+
+.dot{
+  display:inline-block;
+  width:9px;
+  height:9px;
+  border-radius:2px;
+  margin-right:4px;
+}
+
+.dot.blue{background:#2563eb}
+.dot.orange{background:#f97316}
+.dot.green{background:#16a34a}
+.dot.purple{background:#7c3aed}
+
+.invalid{
+  border-color:#dc2626!important;
+  background:#fff7f7!important;
+}
+
+.field-error{
+  color:#dc2626;
+  font-size:11px;
+  margin-top:4px;
+  min-height:14px;
+}
+
+.top-stat{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px 18px;
+  color:#475569;
+  font-size:12px;
+  margin-top:7px;
+}
+
+.top-stat b{
+  color:#172033;
+}
+
+@media(max-width:1050px){
+  .layout{
+    grid-template-columns:1fr;
+  }
+
+  .controls{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    align-items:start;
+  }
+}
+
+@media(max-width:700px){
+  main{padding:10px}
+  header{padding:15px}
+
+  .controls,
+  .charts{
+    grid-template-columns:1fr;
+  }
+
+  .chart-card.wide{
+    grid-column:auto;
+  }
+
+  .chart-wrap{
+    height:280px;
+  }
+
+  #drawCanvas{
+    height:220px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>Interactive Central Limit Theorem (CLT) Demo</h1>
+  <p>
+    手繪單一自旋分布 → n 次相加 → 常態分布 → 獨立自旋格點平均值
+  </p>
+</header>
+
+<main>
+
+<div class="layout">
+
+<!-- =====================================================
+     CONTROLS
+===================================================== -->
+
+<aside class="controls">
+
+<section class="card">
+
+  <h2>原始分布</h2>
+
+  <span id="modeBadge" class="mode-badge">
+    手繪模式
+  </span>
+
+  <h3>手繪分布</h3>
+
+  <canvas id="drawCanvas"></canvas>
+
+  <div class="draw-axis">
+    <span>-1</span>
+    <span>0</span>
+    <span>1</span>
+  </div>
+
+  <div class="draw-hint">
+    在框內畫一條非負曲線。完成一筆後會自動鎖定。
+    按「重繪」可以重新輸入。
+  </div>
+
+  <div class="control">
+    <label>
+      <span>Sample Points</span>
+      <span class="range-value" id="samplePointsValue">100</span>
+    </label>
+
+    <input
+      id="samplePoints"
+      type="range"
+      min="1"
+      max="100"
+      value="100"
+    >
+  </div>
+
+  <div class="button-row">
+    <button id="redrawBtn">重繪</button>
+  </div>
+
+  <div class="switch-row">
+    <label for="isingToggle">
+      Ising model with external field
+    </label>
+
+    <label class="switch">
+      <input id="isingToggle" type="checkbox">
+      <span class="slider"></span>
+    </label>
+  </div>
+
+  <div id="isingControls" class="ising-controls disabled">
+
+    <div class="control">
+      <label>
+        <span>Field Strength</span>
+        <span id="fieldValue">0</span>
+      </label>
+
+      <input
+        id="field"
+        type="number"
+        min="-10"
+        max="10"
+        step="0.01"
+        value="0"
+      >
+
+      <div id="fieldError" class="field-error"></div>
+    </div>
+
+    <div class="control">
+      <label>
+        <span>Temperature</span>
+        <span id="tempValue">1</span>
+      </label>
+
+      <input
+        id="temperature"
+        type="number"
+        min="0.01"
+        max="100"
+        step="0.01"
+        value="1"
+      >
+
+      <div id="tempError" class="field-error"></div>
+    </div>
+
+    <div class="control">
+      <label>discrete spin</label>
+
+      <select id="spinType">
+        <option value="pm1">{-1, +1}</option>
+        <option value="0pm1">{-1, 0, +1}</option>
+      </select>
+    </div>
+
+  </div>
+
+  <div id="distributionStatus" class="status">
+    請先在手繪框建立有效的單一自旋分布。
+  </div>
+
+  <div class="stats">
+
+    <div class="stat">
+      <small>Single Spin μ</small>
+      <strong id="singleMu">—</strong>
+    </div>
+
+    <div class="stat">
+      <small>Single Spin σ</small>
+      <strong id="singleSigma">—</strong>
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- =====================================================
+     CLT
+===================================================== -->
+
+<section class="card">
+
+  <h2>CLT 控制</h2>
+
+  <div class="control">
+
+    <label>
+      <span>n</span>
+      <span class="range-value" id="nValue">1</span>
+    </label>
+
+    <input
+      id="nSlider"
+      type="range"
+      min="1"
+      max="1"
+      value="1"
+    >
+
+  </div>
+
+  <div class="control">
+
+    <label>
+      <span>max n</span>
+    </label>
+
+    <input
+      id="maxN"
+      type="number"
+      min="1"
+      max="100"
+      step="1"
+      value="1"
+    >
+
+    <div id="maxNError" class="field-error"></div>
+
+  </div>
+
+  <div class="switch-row">
+
+    <label for="centerNormal">
+      center normal on x-axis
+    </label>
+
+    <label class="switch">
+      <input id="centerNormal" type="checkbox">
+      <span class="slider"></span>
+    </label>
+
+  </div>
+
+  <div class="stats">
+
+    <div class="stat">
+      <small>n</small>
+      <strong id="sumN">—</strong>
+    </div>
+
+    <div class="stat">
+      <small>Single μ</small>
+      <strong id="sumMu">—</strong>
+    </div>
+
+    <div class="stat">
+      <small>Single σ</small>
+      <strong id="sumSigma">—</strong>
+    </div>
+
+    <div class="stat">
+      <small>Sum Mean nμ</small>
+      <strong id="sumMean">—</strong>
+    </div>
+
+    <div class="stat">
+      <small>Sum σ σ√n</small>
+      <strong id="sumStd">—</strong>
+    </div>
+
+  </div>
+
+</section>
+
+
+<!-- =====================================================
+     GRID
+===================================================== -->
+
+<section class="card">
+
+  <h2>自旋格點模擬</h2>
+
+  <div class="control">
+
+    <label>rows</label>
+
+    <input
+      id="rows"
+      type="number"
+      min="1"
+      max="100"
+      step="1"
+      value="10"
+    >
+
+    <div id="rowsError" class="field-error"></div>
+
+  </div>
+
+  <div class="control">
+
+    <label>cols</label>
+
+    <input
+      id="cols"
+      type="number"
+      min="1"
+      max="100"
+      step="1"
+      value="10"
+    >
+
+    <div id="colsError" class="field-error"></div>
+
+  </div>
+
+  <div class="control">
+
+    <label>interval (ms)</label>
+
+    <input
+      id="interval"
+      type="number"
+      min="10"
+      max="1000"
+      step="1"
+      value="50"
+    >
+
+    <div id="intervalError" class="field-error"></div>
+
+  </div>
+
+  <div class="button-row">
+
+    <button id="playBtn" class="green">
+      Play
+    </button>
+
+    <button id="pauseBtn" class="secondary">
+      Pause
+    </button>
+
+    <button id="resetBtn" class="orange">
+      Reset
+    </button>
+
+  </div>
+
+  <div id="simStatus" class="status" style="margin-top:10px">
+    尚未開始取樣。
+  </div>
+
+  <div
+    id="gridPreview"
+    class="grid-preview"
+    style="grid-template-columns:repeat(10,1fr)"
+  ></div>
+
+  <div class="legend">
+
+    <span>
+      <i class="dot blue"></i>+1
+    </span>
+
+    <span>
+      <i class="dot orange"></i>-1
+    </span>
+
+    <span>
+      平均值：
+      <b id="liveMean">—</b>
+    </span>
+
+  </div>
+
+  <div class="switch-row">
+
+    <label for="centerMu">
+      center mu on y-axis
+    </label>
+
+    <label class="switch">
+      <input id="centerMu" type="checkbox">
+      <span class="slider"></span>
+    </label>
+
+  </div>
+
+</section>
+
+</aside>
+
+
+<!-- =====================================================
+     CHARTS
+===================================================== -->
+
+<section class="charts">
+
+<section class="card chart-card">
+
+  <h2>Single Spin Probability Distribution</h2>
+
+  <div class="top-stat">
+    <span>μ = <b id="chartMu">—</b></span>
+    <span>σ = <b id="chartSigma">—</b></span>
+  </div>
+
+  <div class="chart-wrap">
+    <canvas id="singleChart"></canvas>
+  </div>
+
+</section>
+
+
+<section class="card chart-card">
+
+  <h2>
+    Distribution of the Sum of n Independent Spins
+  </h2>
+
+  <div class="top-stat">
+    <span>n = <b id="chartN">—</b></span>
+    <span>nμ = <b id="chartSumMean">—</b></span>
+    <span>σ√n = <b id="chartSumStd">—</b></span>
+  </div>
+
+  <div class="chart-wrap">
+    <canvas id="sumChart"></canvas>
+  </div>
+
+</section>
+
+
+<section class="card chart-card wide">
+
+  <h2>Mean Spin vs Time</h2>
+
+  <div class="top-stat">
+    <span>
+      Theoretical μ =
+      <b id="timeMu">—</b>
+    </span>
+
+    <span>
+      SE =
+      <b id="timeSE">—</b>
+    </span>
+
+    <span>
+      N =
+      <b id="timeN">—</b>
+    </span>
+  </div>
+
+  <div class="chart-wrap">
+    <canvas id="timeChart"></canvas>
+  </div>
+
+</section>
+
+</section>
+
+</div>
+
+</main>
+
+
+<script>
+"use strict";
+
+/* =========================================================
+   DOM
+========================================================= */
+
+const $ = id => document.getElementById(id);
+
+const drawCanvas = $("drawCanvas");
+const singleChart = $("singleChart");
+const sumChart = $("sumChart");
+const timeChart = $("timeChart");
+
+
+/* =========================================================
+   STATE
+========================================================= */
+
+const state = {
+
+  mode: "draw",
+
+  drawing: false,
+  drawLocked: false,
+  drawPoints: [],
+
+  handDistribution: null,
+  activeDistribution: null,
+
+  mu: null,
+  sigma: null,
+
+  fieldDistribution: null,
+
+  field: 0,
+  temperature: 1,
+  spinType: "pm1",
+
+  n: 1,
+  maxN: 1,
+
+  convolutionCache: new Map(),
+  sumDistribution: null,
+
+  rows: 10,
+  cols: 10,
+  interval: 50,
+
+  timer: null,
+  playing: false,
+
+  history: [],
+
+  centerNormal: false,
+  centerMu: false,
+
+  calculationToken: 0
+};
+
+
+/* =========================================================
+   BASIC HELPERS
+========================================================= */
+
+function fmt(x){
+  return Number.isFinite(x) ? Number(x).toFixed(3) : "—";
+}
+
+function clamp(x,min,max){
+  return Math.max(min,Math.min(max,x));
+}
+
+function finitePositive(x){
+  return Number.isFinite(x) && x > 0;
+}
+
+function linspace(a,b,n){
+
+  if(n <= 1){
+    return [a];
+  }
+
+  const out = new Array(n);
+  const step = (b-a)/(n-1);
+
+  for(let i=0;i<n;i++){
+    out[i] = a + step*i;
+  }
+
+  return out;
+}
+
+function setStatus(el,text,type=""){
+
+  el.textContent = text;
+  el.className = "status";
+
+  if(type){
+    el.classList.add(type);
+  }
+}
+
+
+/* =========================================================
+   NUMERICAL INTEGRATION
+========================================================= */
+
+function trapz(x,y){
+
+  let sum = 0;
+
+  for(let i=1;i<x.length;i++){
+
+    const dx = x[i]-x[i-1];
+
+    sum +=
+      0.5 *
+      (y[i]+y[i-1]) *
+      dx;
+  }
+
+  return sum;
+}
+
+
+function continuousStats(x,p){
+
+  const meanIntegrand =
+    x.map((v,i)=>v*p[i]);
+
+  const secondIntegrand =
+    x.map((v,i)=>v*v*p[i]);
+
+  const mu = trapz(x,meanIntegrand);
+
+  const second = trapz(x,secondIntegrand);
+
+  const variance =
+    Math.max(0,second-mu*mu);
+
+  return {
+    mu,
+    sigma:Math.sqrt(variance)
+  };
+}
+
+
+function normalizeDensity(x,y){
+
+  if(!x.length || x.length !== y.length){
+    throw new Error("沒有有效取樣點。");
+  }
+
+  for(const value of y){
+
+    if(!Number.isFinite(value)){
+      throw new Error("手繪分布包含非有限數值。");
+    }
+
+    if(value < -1e-9){
+      throw new Error(
+        "手繪分布包含負值，機率密度不可為負。"
+      );
+    }
+  }
+
+  const clean = y.map(v=>Math.max(0,v));
+
+  const area = trapz(x,clean);
+
+  if(!finitePositive(area)){
+    throw new Error(
+      "無法形成有效機率分布，請重新繪製。"
+    );
+  }
+
+  return clean.map(v=>v/area);
+}
+
+
+/* =========================================================
+   CANVAS
+========================================================= */
+
+function setupCanvas(canvas){
+
+  const rect = canvas.getBoundingClientRect();
+
+  const width = Math.max(1,rect.width);
+  const height = Math.max(1,rect.height);
+
+  const dpr = Math.max(
+    1,
+    Math.min(window.devicePixelRatio || 1,2)
+  );
+
+  canvas.width = Math.round(width*dpr);
+  canvas.height = Math.round(height*dpr);
+
+  const ctx = canvas.getContext("2d");
+
+  ctx.setTransform(
+    dpr,
+    0,
+    0,
+    dpr,
+    0,
+    0
+  );
+
+  return {
+    ctx,
+    width,
+    height
+  };
+}
+
+
+/* =========================================================
+   DRAWING CANVAS
+========================================================= */
+
+function drawDrawBackground(ctx,width,height){
+
+  ctx.clearRect(0,0,width,height);
+
+  ctx.fillStyle="#fff";
+  ctx.fillRect(0,0,width,height);
+
+  ctx.strokeStyle="#e2e8f0";
+  ctx.lineWidth=1;
+
+  for(let i=0;i<=4;i++){
+
+    const x =
+      width*i/4;
+
+    ctx.beginPath();
+    ctx.moveTo(x,0);
+    ctx.lineTo(x,height);
+    ctx.stroke();
+
+    const y =
+      height*i/4;
+
+    ctx.beginPath();
+    ctx.moveTo(0,y);
+    ctx.lineTo(width,y);
+    ctx.stroke();
+  }
+
+  ctx.strokeStyle="#64748b";
+
+  ctx.beginPath();
+  ctx.moveTo(0,height-1);
+  ctx.lineTo(width,height-1);
+  ctx.stroke();
+}
+
+
+function drawRawStroke(ctx){
+
+  if(state.drawPoints.length < 2){
+    return;
+  }
+
+  ctx.strokeStyle="#2563eb";
+  ctx.lineWidth=3;
+  ctx.lineJoin="round";
+  ctx.lineCap="round";
+
+  ctx.beginPath();
+
+  state.drawPoints.forEach((p,i)=>{
+
+    if(i===0){
+      ctx.moveTo(p.x,p.y);
+    }else{
+      ctx.lineTo(p.x,p.y);
+    }
+
+  });
+
+  ctx.stroke();
+}
+
+
+function drawDensityOnDrawCanvas(
+  ctx,
+  width,
+  height,
+  x,
+  p,
+  color="#2563eb"
+){
+
+  if(!x.length){
+    return;
+  }
+
+  const maxP =
+    Math.max(...p,1e-12);
+
+  ctx.strokeStyle=color;
+  ctx.lineWidth=2.5;
+  ctx.lineJoin="round";
+  ctx.lineCap="round";
+
+  ctx.beginPath();
+
+  for(let i=0;i<x.length;i++){
+
+    const px =
+      ((x[i]+1)/2)*width;
+
+    const py =
+      height -
+      (p[i]/maxP)*height*.9 -
+      2;
+
+    if(i===0){
+      ctx.moveTo(px,py);
+    }else{
+      ctx.lineTo(px,py);
+    }
+  }
+
+  ctx.stroke();
+}
+
+
+function redrawDrawCanvas(){
+
+  const {ctx,width,height} =
+    setupCanvas(drawCanvas);
+
+  drawDrawBackground(
+    ctx,
+    width,
+    height
+  );
+
+  if(state.handDistribution){
+
+    drawDensityOnDrawCanvas(
+      ctx,
+      width,
+      height,
+      state.handDistribution.x,
+      state.handDistribution.p
+    );
+
+  }else if(state.drawPoints.length){
+
+    drawRawStroke(ctx);
+  }
+
+  if(state.drawLocked){
+
+    ctx.fillStyle="rgba(255,255,255,.65)";
+    ctx.fillRect(0,0,width,32);
+
+    ctx.fillStyle="#475569";
+    ctx.font="12px system-ui";
+
+    ctx.fillText(
+      "已鎖定：按「重繪」重新輸入",
+      10,
+      20
+    );
+  }
+}
+
+
+function pointerPosition(e){
+
+  const rect =
+    drawCanvas.getBoundingClientRect();
+
+  return {
+    x:clamp(
+      e.clientX-rect.left,
+      0,
+      rect.width
+    ),
+
+    y:clamp(
+      e.clientY-rect.top,
+      0,
+      rect.height
+    )
+  };
+}
+
+
+function pointerToDistribution(p){
+
+  const rect =
+    drawCanvas.getBoundingClientRect();
+
+  const x =
+    -1 +
+    2*(p.x/rect.width);
+
+  const y =
+    clamp(
+      1-p.y/rect.height,
+      0,
+      1
+    );
+
+  return {x,y};
+}
+
+
+/* =========================================================
+   DRAWING
+========================================================= */
+
+function startDrawing(e){
+
+  if(
+    state.mode !== "draw" ||
+    state.drawLocked
+  ){
+    return;
+  }
+
+  e.preventDefault();
+
+  try{
+    drawCanvas.setPointerCapture(e.pointerId);
+  }catch(_){}
+
+  state.drawing=true;
+
+  state.drawPoints=[
+    pointerPosition(e)
+  ];
+
+  redrawDrawCanvas();
+}
+
+
+function moveDrawing(e){
+
+  if(
+    !state.drawing ||
+    state.mode !== "draw" ||
+    state.drawLocked
+  ){
+    return;
+  }
+
+  e.preventDefault();
+
+  const p =
+    pointerPosition(e);
+
+  const last =
+    state.drawPoints[
+      state.drawPoints.length-1
+    ];
+
+  if(
+    !last ||
+    Math.hypot(
+      p.x-last.x,
+      p.y-last.y
+    ) > 1
+  ){
+
+    state.drawPoints.push(p);
+
+    redrawDrawCanvas();
+  }
+}
+
+
+function endDrawing(e){
+
+  if(!state.drawing){
+    return;
+  }
+
+  state.drawing=false;
+
+  try{
+    if(e && e.pointerId !== undefined){
+      drawCanvas.releasePointerCapture(e.pointerId);
+    }
+  }catch(_){}
+
+  if(state.drawPoints.length < 2){
+
+    setStatus(
+      $("distributionStatus"),
+      "沒有足夠的手繪資料，請重新繪製。",
+      "error"
+    );
+
+    return;
+  }
+
+  processDrawing();
+}
+
+
+/* =========================================================
+   HAND DRAW DISTRIBUTION
+========================================================= */
+
+function interpolateStroke(points,x){
+
+  if(points.length===0){
+    return 0;
+  }
+
+  if(x < points[0].x){
+    return 0;
+  }
+
+  if(x > points[points.length-1].x){
+    return 0;
+  }
+
+  let lo=0;
+  let hi=points.length-1;
+
+  while(hi-lo>1){
+
+    const mid =
+      Math.floor((lo+hi)/2);
+
+    if(points[mid].x <= x){
+      lo=mid;
+    }else{
+      hi=mid;
+    }
+  }
+
+  const a=points[lo];
+  const b=points[hi];
+
+  const dx=b.x-a.x;
+
+  if(Math.abs(dx)<1e-12){
+    return Math.max(0,a.y);
+  }
+
+  const t=(x-a.x)/dx;
+
+  return Math.max(
+    0,
+    a.y+(b.y-a.y)*t
+  );
+}
+
+
+function processDrawing(){
+
+  const sampleCount =
+    Number($("samplePoints").value);
+
+  if(
+    !Number.isInteger(sampleCount) ||
+    sampleCount<1 ||
+    sampleCount>100
+  ){
+    setStatus(
+      $("distributionStatus"),
+      "Sample Points 必須介於 1 與 100。",
+      "error"
+    );
+    return;
+  }
+
+  /*
+    Important:
+    We do NOT overwrite the previous valid distribution
+    until the new drawing has been successfully normalized.
+  */
+
+  const points =
+    state.drawPoints
+      .map(pointerToDistribution)
+      .sort((a,b)=>a.x-b.x);
+
+  const x =
+    linspace(-1,1,sampleCount);
+
+  const rawY =
+    x.map(v=>interpolateStroke(points,v));
+
+  try{
+
+    const p =
+      normalizeDensity(x,rawY);
+
+    const stats =
+      continuousStats(x,p);
+
+    if(
+      !Number.isFinite(stats.mu) ||
+      !Number.isFinite(stats.sigma)
+    ){
+      throw new Error(
+        "分布統計量無法計算。"
+      );
+    }
+
+    const newDistribution={
+      kind:"continuous",
+      x,
+      p
+    };
+
+    state.handDistribution =
+      newDistribution;
+
+    state.drawLocked=true;
+
+    activateDistribution(
+      newDistribution,
+      stats
+    );
+
+    redrawDrawCanvas();
+
+    setStatus(
+      $("distributionStatus"),
+      "手繪分布已成功正規化。",
+      "ok"
+    );
+
+  }catch(err){
+
+    state.drawLocked=false;
+
+    redrawDrawCanvas();
+
+    setStatus(
+      $("distributionStatus"),
+      err.message ||
+      "無法形成有效機率分布，請重新繪製。",
+      "error"
+    );
+  }
+}
+
+
+/* =========================================================
+   DISCRETE ISING
+========================================================= */
+
+function createIsingDistribution(){
+
+  const h=state.field;
+  const T=state.temperature;
+
+  if(
+    !Number.isFinite(h) ||
+    h<-10 ||
+    h>10
+  ){
+    throw new Error(
+      "Field Strength 必須介於 -10 與 10。"
+    );
+  }
+
+  if(
+    !Number.isFinite(T) ||
+    T<.01 ||
+    T>100
+  ){
+    throw new Error(
+      "Temperature 必須介於 0.01 與 100。"
+    );
+  }
+
+  let spins;
+
+  if(state.spinType==="pm1"){
+    spins=[-1,1];
+  }else{
+    spins=[-1,0,1];
+  }
+
+  /*
+    Standard dimensionless independent-spin Boltzmann model:
+
+        P(s) ∝ exp((h*s - s²/2)/T)
+
+    The -s²/2 term is relevant for the {-1,0,+1}
+    option and is constant for {-1,+1}.
+  */
+
+  const rawWeights =
+    spins.map(
+      s=>Math.exp(
+        (h*s-.5*s*s)/T
+      )
+    );
+
+  const total =
+    rawWeights.reduce(
+      (a,b)=>a+b,
+      0
+    );
+
+  if(!finitePositive(total)){
+    throw new Error(
+      "外場分布無法正規化。"
+    );
+  }
+
+  const probabilities =
+    rawWeights.map(
+      w=>w/total
+    );
+
+  let mu=0;
+  let second=0;
+
+  for(let i=0;i<spins.length;i++){
+
+    mu +=
+      spins[i]*
+      probabilities[i];
+
+    second +=
+      spins[i]*spins[i]*
+      probabilities[i];
+  }
+
+  const variance =
+    Math.max(
+      0,
+      second-mu*mu
+    );
+
+  const sigma =
+    Math.sqrt(variance);
+
+  return {
+    kind:"discrete",
+
+    spins,
+    probabilities,
+
+    mu,
+    sigma,
+
+    /*
+      x/p is only used to display the discrete
+      distribution as vertical probability lines.
+    */
+    x:spins.slice(),
+    p:probabilities.slice()
+  };
+}
+
+
+/* =========================================================
+   ACTIVE DISTRIBUTION
+========================================================= */
+
+function activateDistribution(
+  distribution,
+  stats
+){
+
+  if(
+    !distribution ||
+    !Number.isFinite(stats.mu) ||
+    !Number.isFinite(stats.sigma)
+  ){
+    return;
+  }
+
+  state.activeDistribution =
+    distribution;
+
+  state.mu=stats.mu;
+  state.sigma=stats.sigma;
+
+  /*
+    Invalidate all previous convolution results.
+  */
+  state.convolutionCache.clear();
+  state.sumDistribution=null;
+
+  $("singleMu").textContent =
+    fmt(state.mu);
+
+  $("singleSigma").textContent =
+    fmt(state.sigma);
+
+  $("chartMu").textContent =
+    fmt(state.mu);
+
+  $("chartSigma").textContent =
+    fmt(state.sigma);
+
+  updateCLT();
+  updateTimeStats();
+  drawAllCharts();
+}
+
+
+/* =========================================================
+   DISCRETE CONVOLUTION
+========================================================= */
+
+function discreteConvolution(a,b){
+
+  const out =
+    new Float64Array(
+      a.length+b.length-1
+    );
+
+  for(let i=0;i<a.length;i++){
+
+    if(a[i]===0){
+      continue;
+    }
+
+    for(let j=0;j<b.length;j++){
+
+      if(b[j]===0){
+        continue;
+      }
+
+      out[i+j] +=
+        a[i]*b[j];
+    }
+  }
+
+  return out;
+}
+
+
+function normalizeMass(p){
+
+  let total=0;
+
+  for(const value of p){
+    total+=value;
+  }
+
+  if(!finitePositive(total)){
+    throw new Error(
+      "卷積結果無法正規化。"
+    );
+  }
+
+  return Float64Array.from(
+    p,
+    v=>v/total
+  );
+}
+
+
+function computeDiscreteConvolution(n){
+
+  const dist =
+    state.activeDistribution;
+
+  if(
+    !dist ||
+    dist.kind!=="discrete"
+  ){
+    return null;
+  }
+
+  if(state.convolutionCache.has(n)){
+    return state.convolutionCache.get(n);
+  }
+
+  /*
+    Cache n=1.
+  */
+
+  if(!state.convolutionCache.has(1)){
+
+    state.convolutionCache.set(
+      1,
+      {
+        kind:"discrete",
+        spins:dist.spins.slice(),
+        probabilities:
+          dist.probabilities.slice()
+      }
+    );
+  }
+
+  let startN=1;
+  let current =
+    state.convolutionCache.get(1);
+
+  /*
+    Find nearest cached result below n.
+  */
+
+  for(const key of state.convolutionCache.keys()){
+
+    if(
+      key<=n &&
+      key>startN
+    ){
+      startN=key;
+      current=
+        state.convolutionCache.get(key);
+    }
+  }
+
+  let probabilities =
+    Float64Array.from(
+      current.probabilities
+    );
+
+  let minSpin =
+    current.spins[0];
+
+  const baseSpins =
+    dist.spins;
+
+  const baseProbabilities =
+    dist.probabilities;
+
+  let currentN=startN;
+
+  while(currentN<n){
+
+    probabilities =
+      discreteConvolution(
+        probabilities,
+        baseProbabilities
+      );
+
+    probabilities =
+      normalizeMass(probabilities);
+
+    minSpin +=
+      baseSpins[0];
+
+    currentN++;
+
+    const spins =
+      new Array(probabilities.length);
+
+    /*
+      For {-1,+1}, {-1,0,+1} this remains
+      an integer-valued sum.
+    */
+    for(let i=0;i<spins.length;i++){
+      spins[i] =
+        minSpin+i;
+    }
+
+    current={
+      kind:"discrete",
+      spins,
+      probabilities:Array.from(
+        probabilities
+      )
+    };
+
+    state.convolutionCache.set(
+      currentN,
+      current
+    );
+  }
+
+  return current;
+}
+
+
+/* =========================================================
+   CONTINUOUS CONVOLUTION
+========================================================= */
+
+function continuousConvolution(a,b){
+
+  const out =
+    new Float64Array(
+      a.length+b.length-1
+    );
+
+  for(let i=0;i<a.length;i++){
+
+    if(a[i]===0){
+      continue;
+    }
+
+    for(let j=0;j<b.length;j++){
+
+      if(b[j]===0){
+        continue;
+      }
+
+      out[i+j] +=
+        a[i]*b[j];
+    }
+  }
+
+  return out;
+}
+
+
+function compressContinuous(
+  p,
+  dx,
+  xMin,
+  maxPoints=4000
+){
+
+  if(p.length<=maxPoints){
+    return {
+      p,
+      dx,
+      xMin
+    };
+  }
+
+  const factor =
+    Math.ceil(
+      p.length/maxPoints
+    );
+
+  const newLength =
+    Math.ceil(
+      p.length/factor
+    );
+
+  const reduced =
+    new Float64Array(
+      newLength
+    );
+
+  /*
+    Treat values as probability masses.
+  */
+  for(let i=0;i<p.length;i++){
+
+    reduced[
+      Math.floor(i/factor)
+    ] += p[i];
+  }
+
+  return {
+    p:normalizeMass(reduced),
+    dx:dx*factor,
+    xMin
+  };
+}
+
+
+function computeContinuousConvolution(n){
+
+  const dist =
+    state.activeDistribution;
+
+  if(
+    !dist ||
+    dist.kind!=="continuous"
+  ){
+    return null;
+  }
+
+  if(state.convolutionCache.has(n)){
+    return state.convolutionCache.get(n);
+  }
+
+  const baseX=dist.x;
+  const baseP=dist.p;
+
+  const baseDx =
+    baseX.length>1
+      ? baseX[1]-baseX[0]
+      : 2;
+
+  /*
+    Convert density to probability mass.
+  */
+  let probabilities =
+    Float64Array.from(
+      baseP,
+      v=>v*baseDx
+    );
+
+  probabilities =
+    normalizeMass(probabilities);
+
+  let currentN=1;
+
+  let currentDx=baseDx;
+
+  /*
+    IMPORTANT BUG FIX:
+    The minimum x value of an n-fold sum is n*xMin.
+  */
+  let currentXMin=
+    baseX[0];
+
+  let cachedN=1;
+
+  /*
+    Reuse the closest cached result.
+  */
+  for(const key of state.convolutionCache.keys()){
+
+    if(
+      key<=n &&
+      key>cachedN
+    ){
+      cachedN=key;
+    }
+  }
+
+  if(cachedN>1){
+
+    const cached =
+      state.convolutionCache.get(
+        cachedN
+      );
+
+    probabilities =
+      Float64Array.from(
+        cached.pMass
+      );
+
+    currentN=cachedN;
+    currentDx=cached.dx;
+    currentXMin=cached.xMin;
+  }
+
+  while(currentN<n){
+
+    probabilities =
+      continuousConvolution(
+        probabilities,
+        Float64Array.from(
+          baseP,
+          v=>v*baseDx
+        )
+      );
+
+    probabilities =
+      normalizeMass(probabilities);
+
+    /*
+      The spacing of the convolution grid is the same
+      only when the arrays have the same dx.
+    */
+    currentXMin += baseX[0];
+
+    currentN++;
+
+    const compressed =
+      compressContinuous(
+        probabilities,
+        currentDx,
+        currentXMin
+      );
+
+    probabilities =
+      compressed.p;
+
+    currentDx =
+      compressed.dx;
+
+    currentXMin =
+      compressed.xMin;
+
+    const cached={
+      kind:"continuous",
+      pMass:Array.from(probabilities),
+      dx:currentDx,
+      xMin:currentXMin
+    };
+
+    state.convolutionCache.set(
+      currentN,
+      cached
+    );
+  }
+
+  const result =
+    state.convolutionCache.get(n);
+
+  if(!result){
+    return null;
+  }
+
+  const x =
+    new Array(
+      result.pMass.length
+    );
+
+  const density =
+    new Array(
+      result.pMass.length
+    );
+
+  for(let i=0;i<x.length;i++){
+
+    x[i] =
+      result.xMin +
+      i*result.dx;
+
+    density[i] =
+      result.pMass[i]/
+      Math.max(
+        result.dx,
+        1e-15
+      );
+  }
+
+  return {
+    kind:"continuous",
+    x,
+    p:density,
+    dx:result.dx,
+    pMass:result.pMass
+  };
+}
+
+
+/* =========================================================
+   GENERAL SUM DISTRIBUTION
+========================================================= */
+
+function computeSumDistribution(n){
+
+  if(!state.activeDistribution){
+    return null;
+  }
+
+  if(
+    state.activeDistribution.kind===
+    "discrete"
+  ){
+    return computeDiscreteConvolution(n);
+  }
+
+  return computeContinuousConvolution(n);
+}
+
+
+/* =========================================================
+   CLT UPDATE
+========================================================= */
+
+function updateCLT(){
+
+  if(!state.activeDistribution){
+
+    state.sumDistribution=null;
+
+    $("sumN").textContent="—";
+    $("sumMu").textContent="—";
+    $("sumSigma").textContent="—";
+    $("sumMean").textContent="—";
+    $("sumStd").textContent="—";
+
+    drawSumChart();
+
+    return;
+  }
+
+  state.n=
+    clamp(
+      state.n,
+      1,
+      state.maxN
+    );
+
+  $("nSlider").value=
+    state.n;
+
+  $("nValue").textContent=
+    state.n;
+
+  $("sumN").textContent=
+    state.n;
+
+  $("sumMu").textContent=
+    fmt(state.mu);
+
+  $("sumSigma").textContent=
+    fmt(state.sigma);
+
+  const sumMean=
+    state.n*state.mu;
+
+  const sumStd=
+    state.sigma*
+    Math.sqrt(state.n);
+
+  $("sumMean").textContent=
+    fmt(sumMean);
+
+  $("sumStd").textContent=
+    fmt(sumStd);
+
+  $("chartN").textContent=
+    state.n;
+
+  $("chartSumMean").textContent=
+    fmt(sumMean);
+
+  $("chartSumStd").textContent=
+    fmt(sumStd);
+
+  const token=
+    ++state.calculationToken;
+
+  setStatus(
+    $("distributionStatus"),
+    "正在計算 n 次相加分布…",
+    "busy"
+  );
+
+  requestAnimationFrame(()=>{
+
+    if(token!==state.calculationToken){
+      return;
+    }
+
+    try{
+
+      const result =
+        computeSumDistribution(
+          state.n
+        );
+
+      if(!result){
+        throw new Error(
+          "無法計算相加分布。"
+        );
+      }
+
+      state.sumDistribution=
+        result;
+
+      if(token!==state.calculationToken){
+        return;
+      }
+
+      setStatus(
+        $("distributionStatus"),
+        state.mode==="ising"
+          ? "目前使用 Ising 外場分布。"
+          : "目前使用手繪分布。",
+        "ok"
+      );
+
+      drawSumChart();
+
+    }catch(err){
+
+      setStatus(
+        $("distributionStatus"),
+        err.message ||
+        "相加分布計算失敗。",
+        "error"
+      );
+    }
+  });
+}
+
+
+/* =========================================================
+   CHART CANVAS
+========================================================= */
+
+function chartFrame(
+  ctx,
+  width,
+  height,
+  xMin,
+  xMax,
+  yMin,
+  yMax,
+  xLabel,
+  yLabel
+){
+
+  const pad={
+    left:55,
+    right:18,
+    top:22,
+    bottom:42
+  };
+
+  ctx.clearRect(
+    0,
+    0,
+    width,
+    height
+  );
+
+  ctx.fillStyle="#fff";
+  ctx.fillRect(
+    0,
+    0,
+    width,
+    height
+  );
+
+  if(xMax===xMin){
+    xMax=xMin+1;
+  }
+
+  if(yMax===yMin){
+    yMax=yMin+1;
+  }
+
+  const plotW=
+    width-pad.left-pad.right;
+
+  const plotH=
+    height-pad.top-pad.bottom;
+
+  const sx=x=>
+    pad.left+
+    (x-xMin)/
+    (xMax-xMin)*
+    plotW;
+
+  const sy=y=>
+    pad.top+
+    (1-(y-yMin)/
+    (yMax-yMin))*
+    plotH;
+
+  ctx.strokeStyle="#e2e8f0";
+  ctx.lineWidth=1;
+
+  for(let i=0;i<=5;i++){
+
+    const y=
+      yMin+
+      (yMax-yMin)*i/5;
+
+    const py=sy(y);
+
+    ctx.beginPath();
+    ctx.moveTo(
+      pad.left,
+      py
+    );
+    ctx.lineTo(
+      width-pad.right,
+      py
+    );
+    ctx.stroke();
+
+    ctx.fillStyle="#64748b";
+    ctx.font="10px system-ui";
+    ctx.textAlign="right";
+
+    ctx.fillText(
+      Math.abs(y)>=100
+        ? y.toFixed(0)
+        : y.toFixed(2),
+      pad.left-7,
+      py+3
+    );
+  }
+
+  for(let i=0;i<=5;i++){
+
+    const x=
+      xMin+
+      (xMax-xMin)*i/5;
+
+    const px=sx(x);
+
+    ctx.beginPath();
+    ctx.moveTo(
+      px,
+      pad.top
+    );
+    ctx.lineTo(
+      px,
+      height-pad.bottom
+    );
+    ctx.stroke();
+
+    ctx.fillStyle="#64748b";
+    ctx.textAlign="center";
+
+    ctx.fillText(
+      Math.abs(x)>=100
+        ? x.toFixed(0)
+        : x.toFixed(2),
+      px,
+      height-pad.bottom+17
+    );
+  }
+
+  ctx.strokeStyle="#475569";
+  ctx.lineWidth=1.2;
+
+  ctx.beginPath();
+
+  ctx.moveTo(
+    pad.left,
+    pad.top
+  );
+
+  ctx.lineTo(
+    pad.left,
+    height-pad.bottom
+  );
+
+  ctx.lineTo(
+    width-pad.right,
+    height-pad.bottom
+  );
+
+  ctx.stroke();
+
+  ctx.fillStyle="#334155";
+  ctx.font="12px system-ui";
+  ctx.textAlign="center";
+
+  ctx.fillText(
+    xLabel,
+    pad.left+plotW/2,
+    height-8
+  );
+
+  ctx.save();
+
+  ctx.translate(
+    14,
+    pad.top+plotH/2
+  );
+
+  ctx.rotate(-Math.PI/2);
+
+  ctx.fillText(
+    yLabel,
+    0,
+    0
+  );
+
+  ctx.restore();
+
+  return {
+    sx,
+    sy,
+    pad,
+    plotW,
+    plotH
+  };
+}
+
+
+function niceRange(min,max){
+
+  if(
+    !Number.isFinite(min) ||
+    !Number.isFinite(max)
+  ){
+    return [-1,1];
+  }
+
+  if(Math.abs(max-min)<1e-12){
+
+    const pad=
+      Math.max(
+        .5,
+        Math.abs(min)*.1
+      );
+
+    return [
+      min-pad,
+      max+pad
+    ];
+  }
+
+  const span=max-min;
+  const pad=span*.08;
+
+  return [
+    min-pad,
+    max+pad
+  ];
+}
+
+
+function plotLine(
+  ctx,
+  x,
+  y,
+  map,
+  color,
+  lineWidth=2
+){
+
+  if(!x.length || !y.length){
+    return;
+  }
+
+  ctx.strokeStyle=color;
+  ctx.lineWidth=lineWidth;
+  ctx.lineJoin="round";
+  ctx.lineCap="round";
+
+  ctx.beginPath();
+
+  const step=
+    Math.max(
+      1,
+      Math.ceil(x.length/3000)
+    );
+
+  let started=false;
+
+  for(
+    let i=0;
+    i<x.length;
+    i+=step
+  ){
+
+    const px=map.sx(x[i]);
+    const py=map.sy(y[i]);
+
+    if(
+      !Number.isFinite(px) ||
+      !Number.isFinite(py)
+    ){
+      continue;
+    }
+
+    if(!started){
+      ctx.moveTo(px,py);
+      started=true;
+    }else{
+      ctx.lineTo(px,py);
+    }
+  }
+
+  ctx.stroke();
+}
+
+
+function drawLegend(
+  ctx,
+  items,
+  x,
+  y
+){
+
+  ctx.font="11px system-ui";
+  ctx.textAlign="left";
+
+  let cursor=x;
+
+  for(const item of items){
+
+    ctx.fillStyle=item.color;
+
+    ctx.fillRect(
+      cursor,
+      y-8,
+      14,
+      3
+    );
+
+    cursor+=19;
+
+    ctx.fillStyle="#475569";
+
+    ctx.fillText(
+      item.label,
+      cursor,
+      y
+    );
+
+    cursor +=
+      ctx.measureText(
+        item.label
+      ).width+
+      18;
+  }
+}
+
+
+function drawEmptyChart(
+  ctx,
+  width,
+  height,
+  message
+){
+
+  ctx.clearRect(
+    0,
+    0,
+    width,
+    height
+  );
+
+  ctx.fillStyle="#fff";
+
+  ctx.fillRect(
+    0,
+    0,
+    width,
+    height
+  );
+
+  ctx.strokeStyle="#e2e8f0";
+
+  ctx.strokeRect(
+    20,
+    20,
+    width-40,
+    height-40
+  );
+
+  ctx.fillStyle="#64748b";
+  ctx.font="13px system-ui";
+  ctx.textAlign="center";
+
+  ctx.fillText(
+    message,
+    width/2,
+    height/2
+  );
+}
+
+
+/* =========================================================
+   SINGLE DISTRIBUTION CHART
+========================================================= */
+
+function drawSingleChart(){
+
+  const {
+    ctx,
+    width,
+    height
+  }=setupCanvas(singleChart);
+
+  const dist=
+    state.activeDistribution;
+
+  if(!dist){
+
+    drawEmptyChart(
+      ctx,
+      width,
+      height,
+      "請先建立有效的單一自旋分布"
+    );
+
+    return;
+  }
+
+  if(dist.kind==="continuous"){
+
+    const x=dist.x;
+    const p=dist.p;
+
+    const maxP=
+      Math.max(...p,1e-12);
+
+    const map=
+      chartFrame(
+        ctx,
+        width,
+        height,
+        -1,
+        1,
+        0,
+        maxP*1.12,
+        "Single Spin Value",
+        "Probability Density"
+      );
+
+    plotLine(
+      ctx,
+      x,
+      p,
+      map,
+      "#2563eb",
+      2.5
+    );
+
+    drawLegend(
+      ctx,
+      [
+        {
+          color:"#2563eb",
+          label:
+            "Single Spin Probability Distribution"
+        }
+      ],
+      map.pad.left+10,
+      map.pad.top+18
+    );
+
+    return;
+  }
+
+  /*
+    Discrete distribution:
+    display as probability spikes.
+  */
+
+  const x=dist.spins;
+  const p=dist.probabilities;
+
+  const xmin=
+    Math.min(...x)-.25;
+
+  const xmax=
+    Math.max(...x)+.25;
+
+  const ymax=
+    Math.max(...p,1e-12)*1.2;
+
+  const map=
+    chartFrame(
+      ctx,
+      width,
+      height,
+      xmin,
+      xmax,
+      0,
+      ymax,
+      "Single Spin Value",
+      "Probability"
+    );
+
+  ctx.strokeStyle="#2563eb";
+  ctx.fillStyle="#2563eb";
+  ctx.lineWidth=3;
+
+  for(let i=0;i<x.length;i++){
+
+    const px=map.sx(x[i]);
+    const py=map.sy(p[i]);
+    const zero=map.sy(0);
+
+    ctx.beginPath();
+    ctx.moveTo(px,zero);
+    ctx.lineTo(px,py);
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.arc(
+      px,
+      py,
+      4,
+      0,
+      Math.PI*2
+    );
+    ctx.fill();
+  }
+
+  drawLegend(
+    ctx,
+    [
+      {
+        color:"#2563eb",
+        label:"Single Spin Probability Distribution"
+      }
+    ],
+    map.pad.left+10,
+    map.pad.top+18
+  );
+}
+
+
+/* =========================================================
+   NORMAL PDF
+========================================================= */
+
+function normalPdf(x,mean,std){
+
+  if(std<=1e-15){
+
+    return Math.abs(x-mean)<1e-12
+      ? 1
+      : 0;
+  }
+
+  const z=
+    (x-mean)/std;
+
+  return Math.exp(
+    -.5*z*z
+  )/
+  (
+    std*
+    Math.sqrt(2*Math.PI)
+  );
+}
+
+
+/* =========================================================
+   SUM CHART
+========================================================= */
+
+function drawSumChart(){
+
+  const {
+    ctx,
+    width,
+    height
+  }=setupCanvas(sumChart);
+
+  const dist=
+    state.sumDistribution;
+
+  if(!state.activeDistribution || !dist){
+
+    drawEmptyChart(
+      ctx,
+      width,
+      height,
+      "請先建立有效的單一自旋分布"
+    );
+
+    return;
+  }
+
+  const mean=
+    state.n*state.mu;
+
+  const std=
+    state.sigma*
+    Math.sqrt(state.n);
+
+  if(dist.kind==="discrete"){
+
+    const x=dist.spins;
+    const p=dist.probabilities;
+
+    let xmin=Math.min(...x)-.75;
+    let xmax=Math.max(...x)+.75;
+
+    if(state.centerNormal){
+
+      const span=
+        Math.max(
+          std*4,
+          1
+        );
+
+      xmin=mean-span;
+      xmax=mean+span;
+    }
+
+    const maxP=
+      Math.max(...p,1e-12);
+
+    /*
+      For discrete data the "density" is
+      probability mass per integer location.
+    */
+
+    const map=
+      chartFrame(
+        ctx,
+        width,
+        height,
+        xmin,
+        xmax,
+        0,
+        maxP*1.2,
+        "Sum Sₙ",
+        "Probability"
+      );
+
+    ctx.strokeStyle="#2563eb";
+    ctx.fillStyle="#2563eb";
+    ctx.lineWidth=2.5;
+
+    for(let i=0;i<x.length;i++){
+
+      const px=map.sx(x[i]);
+      const py=map.sy(p[i]);
+      const zero=map.sy(0);
+
+      if(
+        px<map.pad.left ||
+        px>width-map.pad.right
+      ){
+        continue;
+      }
+
+      ctx.beginPath();
+      ctx.moveTo(px,zero);
+      ctx.lineTo(px,py);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.arc(
+        px,
+        py,
+        3,
+        0,
+        Math.PI*2
+      );
+      ctx.fill();
+    }
+
+    /*
+      Normal curve is evaluated over the
+      visible x range.
+    */
+
+    const normalX=
+      linspace(
+        xmin,
+        xmax,
+        500
+      );
+
+    const normalY=
+      normalX.map(
+        v=>normalPdf(
+          v,
+          mean,
+          std
+        )
+      );
+
+    /*
+      If std = 0, use a vertical marker instead.
+    */
+
+    if(std>1e-12){
+
+      plotLine(
+        ctx,
+        normalX,
+        normalY,
+        map,
+        "#dc2626",
+        2
+      );
+    }
+
+    drawMeanMarker(
+      ctx,
+      map,
+      mean,
+      height
+    );
+
+    drawLegend(
+      ctx,
+      [
+        {
+          color:"#2563eb",
+          label:"n-fold Convolution"
+        },
+        {
+          color:"#dc2626",
+          label:"Normal Distribution"
+        }
+      ],
+      map.pad.left+10,
+      map.pad.top+18
+    );
+
+    return;
+  }
+
+  /*
+    Continuous convolution.
+  */
+
+  const x=dist.x;
+  const p=dist.p;
+
+  let xmin=
+    Math.min(...x);
+
+  let xmax=
+    Math.max(...x);
+
+  if(state.centerNormal){
+
+    const span=
+      Math.max(
+        std*4,
+        (xmax-xmin)*.35,
+        .25
+      );
+
+    xmin=
+      mean-span;
+
+    xmax=
+      mean+span;
+  }
+
+  [xmin,xmax]=
+    niceRange(
+      xmin,
+      xmax
+    );
+
+  const normalX=
+    linspace(
+      xmin,
+      xmax,
+      700
+    );
+
+  const normalY=
+    normalX.map(
+      v=>normalPdf(
+        v,
+        mean,
+        std
+      )
+    );
+
+  const visibleP=[];
+
+  for(let i=0;i<x.length;i++){
+
+    if(
+      x[i]>=xmin &&
+      x[i]<=xmax
+    ){
+      visibleP.push(p[i]);
+    }
+  }
+
+  const maxP=
+    Math.max(
+      ...visibleP,
+      ...normalY,
+      1e-8
+    );
+
+  const map=
+    chartFrame(
+      ctx,
+      width,
+      height,
+      xmin,
+      xmax,
+      0,
+      maxP*1.15,
+      "Sum Sₙ",
+      "Probability Density"
+    );
+
+  plotLine(
+    ctx,
+    x,
+    p,
+    map,
+    "#2563eb",
+    2.5
+  );
+
+  plotLine(
+    ctx,
+    normalX,
+    normalY,
+    map,
+    "#dc2626",
+    2
+  );
+
+  drawMeanMarker(
+    ctx,
+    map,
+    mean,
+    height
+  );
+
+  drawLegend(
+    ctx,
+    [
+      {
+        color:"#2563eb",
+        label:"n-fold Convolution"
+      },
+      {
+        color:"#dc2626",
+        label:"Normal Distribution"
+      }
+    ],
+    map.pad.left+10,
+    map.pad.top+18
+  );
+}
+
+
+function drawMeanMarker(
+  ctx,
+  map,
+  mean,
+  height
+){
+
+  const px=map.sx(mean);
+
+  if(
+    px<map.pad.left ||
+    px>map.pad.left+map.plotW
+  ){
+    return;
+  }
+
+  ctx.save();
+
+  ctx.strokeStyle=
+    "rgba(124,58,237,.4)";
+
+  ctx.lineWidth=1.5;
+  ctx.setLineDash([5,4]);
+
+  ctx.beginPath();
+
+  ctx.moveTo(
+    px,
+    map.pad.top
+  );
+
+  ctx.lineTo(
+    px,
+    height-map.pad.bottom
+  );
+
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+
+/* =========================================================
+   TIME SERIES
+========================================================= */
+
+function updateTimeStats(){
+
+  if(!state.activeDistribution){
+
+    $("timeMu").textContent="—";
+    $("timeSE").textContent="—";
+    $("timeN").textContent="—";
+
+    return;
+  }
+
+  const N=
+    state.rows*
+    state.cols;
+
+  const se=
+    state.sigma/
+    Math.sqrt(N);
+
+  $("timeMu").textContent=
+    fmt(state.mu);
+
+  $("timeSE").textContent=
+    fmt(se);
+
+  $("timeN").textContent=
+    N;
+}
+
+
+function drawTimeChart(){
+
+  const {
+    ctx,
+    width,
+    height
+  }=setupCanvas(timeChart);
+
+  if(
+    !state.activeDistribution ||
+    state.history.length===0
+  ){
+
+    drawEmptyChart(
+      ctx,
+      width,
+      height,
+      state.activeDistribution
+        ? "按 Play 開始格點取樣"
+        : "請先建立有效的單一自旋分布"
+    );
+
+    return;
+  }
+
+  const values=
+    state.history;
+
+  const N=
+    state.rows*
+    state.cols;
+
+  const mu=
+    state.mu;
+
+  const se=
+    state.sigma/
+    Math.sqrt(N);
+
+  let yMin=
+    Math.min(
+      ...values,
+      mu-se
+    );
+
+  let yMax=
+    Math.max(
+      ...values,
+      mu+se
+    );
+
+  if(state.centerMu){
+
+    const half=
+      Math.max(
+        se*5,
+        (yMax-yMin)*.5,
+        .05
+      );
+
+    yMin=
+      mu-half;
+
+    yMax=
+      mu+half;
+  }
+
+  [yMin,yMax]=
+    niceRange(
+      yMin,
+      yMax
+    );
+
+  const xValues=
+    values.map(
+      (_,i)=>i+1
+    );
+
+  const map=
+    chartFrame(
+      ctx,
+      width,
+      height,
+      1,
+      Math.max(
+        2,
+        values.length
+      ),
+      yMin,
+      yMax,
+      "Step",
+      "Mean Spin"
+    );
+
+  /*
+    Standard error band.
+  */
+
+  const upper=
+    mu+se;
+
+  const lower=
+    mu-se;
+
+  ctx.fillStyle=
+    "rgba(22,163,74,.12)";
+
+  ctx.beginPath();
+
+  ctx.moveTo(
+    map.sx(1),
+    map.sy(upper)
+  );
+
+  ctx.lineTo(
+    map.sx(values.length),
+    map.sy(upper)
+  );
+
+  ctx.lineTo(
+    map.sx(values.length),
+    map.sy(lower)
+  );
+
+  ctx.lineTo(
+    map.sx(1),
+    map.sy(lower)
+  );
+
+  ctx.closePath();
+  ctx.fill();
+
+  /*
+    Theoretical mean.
+  */
+
+  ctx.save();
+
+  ctx.strokeStyle="#7c3aed";
+  ctx.lineWidth=2;
+  ctx.setLineDash([6,4]);
+
+  ctx.beginPath();
+
+  ctx.moveTo(
+    map.sx(1),
+    map.sy(mu)
+  );
+
+  ctx.lineTo(
+    map.sx(values.length),
+    map.sy(mu)
+  );
+
+  ctx.stroke();
+
+  ctx.restore();
+
+  /*
+    SE bounds.
+  */
+
+  ctx.save();
+
+  ctx.strokeStyle=
+    "rgba(22,163,74,.7)";
+
+  ctx.lineWidth=1.2;
+
+  ctx.beginPath();
+
+  ctx.moveTo(
+    map.sx(1),
+    map.sy(upper)
+  );
+
+  ctx.lineTo(
+    map.sx(values.length),
+    map.sy(upper)
+  );
+
+  ctx.stroke();
+
+  ctx.beginPath();
+
+  ctx.moveTo(
+    map.sx(1),
+    map.sy(lower)
+  );
+
+  ctx.lineTo(
+    map.sx(values.length),
+    map.sy(lower)
+  );
+
+  ctx.stroke();
+
+  ctx.restore();
+
+  /*
+    Sample mean.
+    For very long histories only display
+    enough points to keep rendering responsive.
+  */
+
+  plotLine(
+    ctx,
+    xValues,
+    values,
+    map,
+    "#2563eb",
+    2
+  );
+
+  drawLegend(
+    ctx,
+    [
+      {
+        color:"#2563eb",
+        label:"Sample Mean"
+      },
+      {
+        color:"#7c3aed",
+        label:"Theoretical Mean"
+      },
+      {
+        color:"#16a34a",
+        label:"Standard Error"
+      }
+    ],
+    map.pad.left+10,
+    map.pad.top+18
+  );
+}
+
+
+/* =========================================================
+   GRID
+========================================================= */
+
+function buildGrid(){
+
+  const grid=
+    $("gridPreview");
+
+  grid.innerHTML="";
+
+  grid.style.gridTemplateColumns=
+    `repeat(${state.cols},minmax(0,1fr))`;
+
+  const total=
+    state.rows*
+    state.cols;
+
+  const fragment=
+    document.createDocumentFragment();
+
+  for(let i=0;i<total;i++){
+
+    const cell=
+      document.createElement("div");
+
+    cell.className=
+      "spin-cell";
+
+    fragment.appendChild(cell);
+  }
+
+  grid.appendChild(fragment);
+}
+
+
+function sampleOneSpin(){
+
+  const dist=
+    state.activeDistribution;
+
+  if(!dist){
+    return 0;
+  }
+
+  /*
+    Discrete: exact categorical sampling.
+  */
+
+  if(dist.kind==="discrete"){
+
+    const r=Math.random();
+
+    let cumulative=0;
+
+    for(
+      let i=0;
+      i<dist.spins.length;
+      i++
+    ){
+
+      cumulative +=
+        dist.probabilities[i];
+
+      if(r<=cumulative){
+        return dist.spins[i];
+      }
+    }
+
+    return dist.spins[
+      dist.spins.length-1
+    ];
+  }
+
+  /*
+    Continuous:
+    build CDF from trapezoidal mass.
+  */
+
+  const x=dist.x;
+  const p=dist.p;
+
+  if(x.length===1){
+    return x[0];
+  }
+
+  const cdf=
+    new Float64Array(
+      x.length
+    );
+
+  let total=0;
+
+  for(let i=1;i<x.length;i++){
+
+    total +=
+      .5*
+      (p[i-1]+p[i])*
+      (x[i]-x[i-1]);
+
+    cdf[i]=total;
+  }
+
+  if(!finitePositive(total)){
+    return x[0];
+  }
+
+  const target=
+    Math.random()*total;
+
+  let lo=0;
+  let hi=x.length-1;
+
+  while(hi-lo>1){
+
+    const mid=
+      Math.floor(
+        (lo+hi)/2
+      );
+
+    if(cdf[mid]<target){
+      lo=mid;
+    }else{
+      hi=mid;
+    }
+  }
+
+  const c0=cdf[lo];
+  const c1=cdf[hi];
+
+  const t=
+    (target-c0)/
+    Math.max(
+      c1-c0,
+      1e-15
+    );
+
+  return (
+    x[lo]+
+    (x[hi]-x[lo])*t
+  );
+}
+
+
+function sampleGridOnce(){
+
+  if(!state.activeDistribution){
+
+    setStatus(
+      $("simStatus"),
+      "請先建立有效的單一自旋分布。",
+      "error"
+    );
+
+    return;
+  }
+
+  const N=
+    state.rows*
+    state.cols;
+
+  if(
+    N<1 ||
+    N>10000
+  ){
+
+    setStatus(
+      $("simStatus"),
+      "rows × cols 必須介於 1 與 10000。",
+      "error"
+    );
+
+    return;
+  }
+
+  const cells=
+    $("gridPreview").children;
+
+  let sum=0;
+
+  for(let i=0;i<N;i++){
+
+    const spin=
+      sampleOneSpin();
+
+    sum+=spin;
+
+    if(spin>0){
+
+      cells[i].className=
+        "spin-cell pos";
+
+    }else if(spin<0){
+
+      cells[i].className=
+        "spin-cell neg";
+
+    }else{
+
+      cells[i].className=
+        "spin-cell zero";
+    }
+  }
+
+  const mean=
+    sum/N;
+
+  state.history.push(mean);
+
+  $("liveMean").textContent=
+    fmt(mean);
+
+  setStatus(
+    $("simStatus"),
+    `取樣 ${state.history.length} 次，最近平均值 = ${fmt(mean)}`,
+    state.playing ? "ok" : ""
+  );
+
+  drawTimeChart();
+}
+
+
+/* =========================================================
+   PLAY / PAUSE / RESET
+========================================================= */
+
+function stopTimer(){
+
+  if(state.timer!==null){
+
+    clearInterval(
+      state.timer
+    );
+
+    state.timer=null;
+  }
+}
+
+
+function startSimulation(){
+
+  if(!state.activeDistribution){
+
+    setStatus(
+      $("simStatus"),
+      "請先建立有效的單一自旋分布。",
+      "error"
+    );
+
+    return;
+  }
+
+  if(state.playing){
+    return;
+  }
+
+  state.playing=true;
+
+  setStatus(
+    $("simStatus"),
+    "Play 中，正在持續獨立取樣。",
+    "ok"
+  );
+
+  sampleGridOnce();
+
+  stopTimer();
+
+  state.timer=
+    setInterval(
+      sampleGridOnce,
+      state.interval
+    );
+}
+
+
+function pauseSimulation(){
+
+  state.playing=false;
+
+  stopTimer();
+
+  setStatus(
+    $("simStatus"),
+    "已暫停，歷史資料保留。"
+  );
+}
+
+
+function resetSimulation(){
+
+  pauseSimulation();
+
+  state.history=[];
+
+  $("liveMean").textContent="—";
+
+  setStatus(
+    $("simStatus"),
+    "平均值歷史已清除。"
+  );
+
+  drawTimeChart();
+}
+
+
+/* =========================================================
+   INPUT VALIDATION
+========================================================= */
+
+function validateNumber(
+  input,
+  errorEl,
+  min,
+  max,
+  name
+){
+
+  const raw=
+    input.value.trim();
+
+  if(raw===""){
+
+    input.classList.add("invalid");
+
+    errorEl.textContent=
+      `${name} 不可為空。`;
+
+    return null;
+  }
+
+  const value=
+    Number(raw);
+
+  if(!Number.isFinite(value)){
+
+    input.classList.add("invalid");
+
+    errorEl.textContent=
+      `${name} 必須是有限數字。`;
+
+    return null;
+  }
+
+  if(
+    value<min ||
+    value>max
+  ){
+
+    input.classList.add("invalid");
+
+    errorEl.textContent=
+      `${name} 必須介於 ${min} 與 ${max}。`;
+
+    return null;
+  }
+
+  input.classList.remove("invalid");
+
+  errorEl.textContent="";
+
+  return value;
+}
+
+
+function validateMaxN(){
+
+  const value=
+    validateNumber(
+      $("maxN"),
+      $("maxNError"),
+      1,
+      100,
+      "max n"
+    );
+
+  if(value===null){
+    return false;
+  }
+
+  state.maxN=
+    Math.round(value);
+
+  $("nSlider").max=
+    state.maxN;
+
+  if(state.n>state.maxN){
+    state.n=state.maxN;
+  }
+
+  $("nSlider").value=
+    state.n;
+
+  $("nValue").textContent=
+    state.n;
+
+  updateCLT();
+
+  return true;
+}
+
+
+function validateGridInputs(){
+
+  const rows=
+    validateNumber(
+      $("rows"),
+      $("rowsError"),
+      1,
+      100,
+      "rows"
+    );
+
+  const cols=
+    validateNumber(
+      $("cols"),
+      $("colsError"),
+      1,
+      100,
+      "cols"
+    );
+
+  const interval=
+    validateNumber(
+      $("interval"),
+      $("intervalError"),
+      10,
+      1000,
+      "interval"
+    );
+
+  if(
+    rows===null ||
+    cols===null ||
+    interval===null
+  ){
+    return false;
+  }
+
+  state.rows=
+    Math.round(rows);
+
+  state.cols=
+    Math.round(cols);
+
+  state.interval=
+    Math.round(interval);
+
+  buildGrid();
+
+  updateTimeStats();
+
+  drawTimeChart();
+
+  if(state.playing){
+
+    pauseSimulation();
+    startSimulation();
+  }
+
+  return true;
+}
+
+
+/* =========================================================
+   ISING INPUT
+========================================================= */
+
+function updateField(){
+
+  const value=
+    validateNumber(
+      $("field"),
+      $("fieldError"),
+      -10,
+      10,
+      "Field Strength"
+    );
+
+  if(value===null){
+    return;
+  }
+
+  state.field=value;
+
+  $("fieldValue").textContent=
+    value;
+
+  if(state.mode==="ising"){
+    recalculateIsing();
+  }
+}
+
+
+function updateTemperature(){
+
+  const value=
+    validateNumber(
+      $("temperature"),
+      $("tempError"),
+      .01,
+      100,
+      "Temperature"
+    );
+
+  if(value===null){
+    return;
+  }
+
+  state.temperature=value;
+
+  $("tempValue").textContent=
+    value;
+
+  if(state.mode==="ising"){
+    recalculateIsing();
+  }
+}
+
+
+function recalculateIsing(){
+
+  try{
+
+    const result=
+      createIsingDistribution();
+
+    state.fieldDistribution=
+      result;
+
+    activateDistribution(
+      result,
+      {
+        mu:result.mu,
+        sigma:result.sigma
+      }
+    );
+
+    setStatus(
+      $("distributionStatus"),
+      "外場模型分布已更新。",
+      "ok"
+    );
+
+  }catch(err){
+
+    setStatus(
+      $("distributionStatus"),
+      err.message,
+      "error"
+    );
+  }
+}
+
+
+/* =========================================================
+   MODE SWITCH
+========================================================= */
+
+function setMode(ising){
+
+  state.mode=
+    ising
+      ? "ising"
+      : "draw";
+
+  const badge=
+    $("modeBadge");
+
+  badge.textContent=
+    ising
+      ? "Ising 外場模式"
+      : "手繪模式";
+
+  badge.className=
+    "mode-badge"+
+    (
+      ising
+        ? " ising"
+        : ""
+    );
+
+  $("isingControls")
+    .classList
+    .toggle(
+      "disabled",
+      !ising
+    );
+
+  drawCanvas.style.cursor=
+    ising ||
+    state.drawLocked
+      ? "not-allowed"
+      : "crosshair";
+
+  if(ising){
+
+    /*
+      Do NOT alter handDistribution.
+    */
+
+    recalculateIsing();
+
+    redrawDrawCanvas();
+
+    return;
+  }
+
+  /*
+    Return to the saved hand-drawn
+    distribution.
+  */
+
+  if(state.handDistribution){
+
+    const stats=
+      continuousStats(
+        state.handDistribution.x,
+        state.handDistribution.p
+      );
+
+    activateDistribution(
+      state.handDistribution,
+      stats
+    );
+
+    setStatus(
+      $("distributionStatus"),
+      "已恢復先前保存的手繪分布。",
+      "ok"
+    );
+
+  }else{
+
+    state.activeDistribution=null;
+    state.mu=null;
+    state.sigma=null;
+    state.sumDistribution=null;
+
+    setStatus(
+      $("distributionStatus"),
+      "請先在手繪框建立有效的單一自旋分布。"
+    );
+
+    drawAllCharts();
+  }
+
+  redrawDrawCanvas();
+}
+
+
+/* =========================================================
+   REDRAW
+========================================================= */
+
+function enableRedraw(){
+
+  if(state.mode!=="draw"){
+
+    setStatus(
+      $("distributionStatus"),
+      "目前為 Ising 外場模式，請先關閉外場模式。",
+      "error"
+    );
+
+    return;
+  }
+
+  /*
+    Preserve:
+      - current active distribution
+      - previous valid hand distribution
+      - simulation history
+
+    Only unlock the drawing interface.
+  */
+
+  state.drawLocked=false;
+  state.drawing=false;
+  state.drawPoints=[];
+
+  redrawDrawCanvas();
+
+  setStatus(
+    $("distributionStatus"),
+    "手繪框已重新開放。完成新曲線後會取代舊分布。"
+  );
+}
+
+
+/* =========================================================
+   SAMPLE POINTS
+========================================================= */
+
+$("samplePoints").addEventListener(
+  "input",
+  ()=>{
+    $("samplePointsValue").textContent=
+      $("samplePoints").value;
+  }
+);
+
+
+$("samplePoints").addEventListener(
+  "change",
+  ()=>{
+
+    /*
+      If the drawing exists, regenerate its
+      numerical representation with the new
+      sample count.
+    */
+
+    if(
+      state.mode==="draw" &&
+      state.drawPoints.length>=2
+    ){
+
+      const wasLocked=
+        state.drawLocked;
+
+      state.drawLocked=false;
+
+      processDrawing();
+
+      if(
+        wasLocked &&
+        state.handDistribution
+      ){
+        state.drawLocked=true;
+        redrawDrawCanvas();
+      }
+    }
+  }
+);
+
+
+/* =========================================================
+   EVENTS
+========================================================= */
+
+drawCanvas.addEventListener(
+  "pointerdown",
+  startDrawing
+);
+
+drawCanvas.addEventListener(
+  "pointermove",
+  moveDrawing
+);
+
+drawCanvas.addEventListener(
+  "pointerup",
+  endDrawing
+);
+
+drawCanvas.addEventListener(
+  "pointercancel",
+  endDrawing
+);
+
+$("redrawBtn").addEventListener(
+  "click",
+  enableRedraw
+);
+
+
+$("isingToggle").addEventListener(
+  "change",
+  e=>{
+    setMode(e.target.checked);
+  }
+);
+
+
+$("field").addEventListener(
+  "change",
+  updateField
+);
+
+
+$("temperature").addEventListener(
+  "change",
+  updateTemperature
+);
+
+
+$("field").addEventListener(
+  "input",
+  ()=>{
+    const v=
+      Number($("field").value);
+
+    if(
+      Number.isFinite(v) &&
+      v>=-10 &&
+      v<=10
+    ){
+      $("fieldValue").textContent=v;
+    }
+  }
+);
+
+
+$("temperature").addEventListener(
+  "input",
+  ()=>{
+    const v=
+      Number(
+        $("temperature").value
+      );
+
+    if(
+      Number.isFinite(v) &&
+      v>=.01 &&
+      v<=100
+    ){
+      $("tempValue").textContent=v;
+    }
+  }
+);
+
+
+$("spinType").addEventListener(
+  "change",
+  e=>{
+
+    state.spinType=
+      e.target.value;
+
+    if(state.mode==="ising"){
+      recalculateIsing();
+    }
+  }
+);
+
+
+$("nSlider").addEventListener(
+  "input",
+  ()=>{
+    state.n=
+      Number(
+        $("nSlider").value
+      );
+
+    $("nValue").textContent=
+      state.n;
+  }
+);
+
+
+$("nSlider").addEventListener(
+  "change",
+  ()=>{
+    state.n=
+      Number(
+        $("nSlider").value
+      );
+
+    updateCLT();
+  }
+);
+
+
+$("maxN").addEventListener(
+  "change",
+  validateMaxN
+);
+
+
+$("centerNormal").addEventListener(
+  "change",
+  e=>{
+
+    state.centerNormal=
+      e.target.checked;
+
+    drawSumChart();
+  }
+);
+
+
+$("rows").addEventListener(
+  "change",
+  validateGridInputs
+);
+
+$("cols").addEventListener(
+  "change",
+  validateGridInputs
+);
+
+$("interval").addEventListener(
+  "change",
+  validateGridInputs
+);
+
+
+$("playBtn").addEventListener(
+  "click",
+  startSimulation
+);
+
+$("pauseBtn").addEventListener(
+  "click",
+  pauseSimulation
+);
+
+$("resetBtn").addEventListener(
+  "click",
+  resetSimulation
+);
+
+
+$("centerMu").addEventListener(
+  "change",
+  e=>{
+
+    state.centerMu=
+      e.target.checked;
+
+    drawTimeChart();
+  }
+);
+
+
+/* =========================================================
+   RESIZE
+========================================================= */
+
+let resizeTimer=null;
+
+window.addEventListener(
+  "resize",
+  ()=>{
+
+    clearTimeout(resizeTimer);
+
+    resizeTimer=
+      setTimeout(
+        ()=>{
+          redrawDrawCanvas();
+          drawAllCharts();
+        },
+        80
+      );
+  }
+);
+
+
+/* =========================================================
+   INITIALIZATION
+========================================================= */
+
+function init(){
+
+  $("samplePointsValue").textContent=
+    $("samplePoints").value;
+
+  $("nValue").textContent=
+    $("nSlider").value;
+
+  $("fieldValue").textContent=
+    $("field").value;
+
+  $("tempValue").textContent=
+    $("temperature").value;
+
+  buildGrid();
+
+  redrawDrawCanvas();
+
+  drawAllCharts();
+
+  updateTimeStats();
+
+  setStatus(
+    $("distributionStatus"),
+    "請先在手繪框建立有效的單一自旋分布。"
+  );
+
+  setStatus(
+    $("simStatus"),
+    "尚未開始取樣。"
+  );
+}
+
+init();
+
+</script>
+
+</body>
+</html>
