@@ -1,0 +1,627 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Central Limit Theorem Proof</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f6f5f1;
+      --surface: #ffffff;
+      --soft: #eef3f0;
+      --text: #1f2a2e;
+      --muted: #647174;
+      --border: #cbd5d2;
+      --axis: #596669;
+      --grid: #dde5e2;
+      --primary: #197278;
+      --primary-dark: #10565b;
+      --accent: #b85c38;
+      --line: #1d4f91;
+      --limit: #68713c;
+      --shadow: 0 10px 30px rgba(31, 42, 46, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.55;
+    }
+
+    main {
+      width: min(1180px, 100%);
+      margin: 0 auto;
+      padding: 18px;
+    }
+
+    header {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 18px;
+      align-items: end;
+      margin-bottom: 14px;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+      margin-top: 0;
+    }
+
+    h1 {
+      margin-bottom: 4px;
+      font-size: clamp(1.45rem, 3vw, 2.45rem);
+      font-weight: 700;
+      letter-spacing: 0;
+    }
+
+    h2 {
+      margin-bottom: 10px;
+      font-size: 1.1rem;
+      font-weight: 680;
+      letter-spacing: 0;
+    }
+
+    h3 {
+      margin-bottom: 6px;
+      font-size: 0.98rem;
+      font-weight: 670;
+      letter-spacing: 0;
+    }
+
+    .subtitle {
+      max-width: 760px;
+      margin-bottom: 0;
+      color: var(--muted);
+      font-size: 0.98rem;
+    }
+
+    .source-note {
+      max-width: 360px;
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      color: var(--muted);
+      font-size: 0.9rem;
+      box-shadow: var(--shadow);
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 240px minmax(0, 1fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    nav {
+      position: sticky;
+      top: 18px;
+      display: grid;
+      gap: 8px;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    nav a {
+      display: block;
+      padding: 8px 10px;
+      border-radius: 7px;
+      color: var(--primary-dark);
+      text-decoration: none;
+      font-size: 0.92rem;
+      font-weight: 620;
+    }
+
+    nav a:hover,
+    nav a:focus-visible {
+      outline: none;
+      background: var(--soft);
+    }
+
+    .content {
+      display: grid;
+      gap: 16px;
+      min-width: 0;
+    }
+
+    .panel {
+      min-width: 0;
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface);
+      box-shadow: var(--shadow);
+    }
+
+    .theorem {
+      border-left: 5px solid var(--primary);
+    }
+
+    .proof-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .step {
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fbfcfb;
+      min-width: 0;
+    }
+
+    .formula {
+      overflow-x: auto;
+      margin: 10px 0;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: #fbfcfb;
+      color: #122026;
+      font-family: "Cambria Math", Cambria, "Times New Roman", serif;
+      font-size: 1.02rem;
+      line-height: 1.8;
+      white-space: nowrap;
+    }
+
+    .formula math {
+      font-size: 1.12rem;
+    }
+
+    .formula-row {
+      display: block;
+      margin: 4px 0;
+    }
+
+    .formula.center {
+      text-align: center;
+    }
+
+    .math-inline {
+      font-family: "Cambria Math", Cambria, "Times New Roman", serif;
+      font-size: 1.02em;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .note {
+      margin: 10px 0 0;
+      padding: 10px 12px;
+      border-left: 4px solid var(--accent);
+      border-radius: 7px;
+      background: #fbfcfb;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 8px;
+      align-items: stretch;
+      margin-top: 12px;
+    }
+
+    .flow span {
+      display: grid;
+      min-height: 78px;
+      place-items: center;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--soft);
+      color: var(--primary-dark);
+      text-align: center;
+      font-size: 0.9rem;
+      font-weight: 650;
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .pill {
+      padding: 5px 8px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: var(--soft);
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 620;
+    }
+
+    ol {
+      margin: 0;
+      padding-left: 1.25rem;
+    }
+
+    li + li {
+      margin-top: 8px;
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Consolas, "Liberation Mono", monospace;
+      font-size: 0.95em;
+    }
+
+    @media (max-width: 900px) {
+      header,
+      .layout,
+      .proof-grid {
+        grid-template-columns: 1fr;
+      }
+
+      nav {
+        position: static;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+
+    @media (max-width: 560px) {
+      main {
+        padding: 12px;
+      }
+
+      nav {
+        grid-template-columns: 1fr;
+      }
+
+      .flow {
+        grid-template-columns: 1fr;
+      }
+
+    }
+  </style>
+</head>
+<body>
+<main>
+  <header>
+    <div>
+      <h1>Central Limit Theorem Proof</h1>
+      <p class="subtitle">A standalone proof page following the characteristic-function derivation in <code>outline/CLT_demo.ipynb</code>.</p>
+    </div>
+    <aside class="source-note">Core idea: define the normalized total fluctuation, multiply characteristic functions for independent variables, and take the limit n → ∞.</aside>
+  </header>
+
+  <section class="layout">
+    <nav aria-label="Proof sections">
+      <a href="#statement">Theorem</a>
+      <a href="#characteristic">Characteristic function</a>
+      <a href="#standardize">Standardize</a>
+      <a href="#limit">Limit</a>
+      <a href="#remainder">Remainder terms</a>
+    </nav>
+
+    <div class="content">
+      <section id="statement" class="panel theorem">
+        <h2>Theorem Statement</h2>
+        <p>Let <span class="math-inline">X<sub>1</sub>, X<sub>2</sub>, ..., X<sub>n</sub></span> be independent and identically distributed random variables with finite mean and variance:</p>
+        <div class="formula center">
+          <math display="block">
+            <mrow>
+              <mi mathvariant="normal">E</mi><mo>[</mo><mi>X</mi><mo>]</mo><mo>=</mo><mi>μ</mi>
+              <mo>,</mo><mspace width="1.2em"></mspace>
+              <mi mathvariant="normal">E</mi><mo>[</mo>
+              <msup><mrow><mo>(</mo><mi>X</mi><mo>-</mo><mi>μ</mi><mo>)</mo></mrow><mn>2</mn></msup>
+              <mo>]</mo><mo>=</mo><msup><mi>σ</mi><mn>2</mn></msup><mo>&lt;</mo><mi>∞</mi>
+            </mrow>
+          </math>
+        </div>
+        <p>The object we care about is the sum</p>
+        <div class="formula center">
+          <math display="block">
+            <mrow>
+              <mi>Y</mi><mo>=</mo>
+              <munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover>
+              <msub><mi>X</mi><mi>i</mi></msub>
+            </mrow>
+          </math>
+        </div>
+        <p>The Central Limit Theorem says that, when <span class="math-inline">n</span> is large, this sum becomes approximately normal:</p>
+        <div class="formula center">
+          <math display="block">
+            <mrow>
+              <mi>Y</mi><mo>∼</mo>
+              <mi mathvariant="normal">N</mi>
+              <mo>(</mo><mi>n</mi><mi>μ</mi><mo>,</mo><mi>n</mi><msup><mi>σ</mi><mn>2</mn></msup><mo>)</mo>
+            </mrow>
+          </math>
+        </div>
+        <p>To prove that statement, define the normalized fluctuation</p>
+        <div class="formula center">
+          <math display="block">
+            <mrow>
+              <mi>Z</mi><mo>=</mo>
+              <mfrac>
+                <mrow><mi>Y</mi><mo>-</mo><mi>n</mi><mi>μ</mi></mrow>
+                <mrow><mi>σ</mi><msqrt><mi>n</mi></msqrt></mrow>
+              </mfrac>
+            </mrow>
+          </math>
+        </div>
+        <p>Showing that <span class="math-inline">Z</span> converges to the standard normal is equivalent to the statement about <span class="math-inline">Y</span> above:</p>
+        <div class="formula center">
+          <math display="block">
+            <mrow>
+              <mi>Z</mi>
+              <mspace width="0.8em"></mspace>
+              <mover><mo>→</mo><mi>d</mi></mover>
+              <mspace width="0.8em"></mspace>
+              <mi mathvariant="normal">N</mi><mo>(</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo>)</mo>
+            </mrow>
+          </math>
+        </div>
+        <div class="pill-row">
+          <span class="pill">i.i.d. variables</span>
+          <span class="pill">finite variance</span>
+          <span class="pill">normalized Σ</span>
+          <span class="pill">normal limit</span>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Proof Map</h2>
+        <div class="flow" aria-label="Proof flow">
+          <span>define φ<sub>X</sub>(t)</span>
+          <span>use independence</span>
+          <span>standardize each X</span>
+          <span>expand φ<sub>W</sub>(u)</span>
+          <span>take n → ∞</span>
+        </div>
+      </section>
+
+      <section id="characteristic" class="panel">
+        <h2>1. Characteristic Function</h2>
+        <p>For any random variable <span class="math-inline">X</span>, its characteristic function is</p>
+        <div class="formula center">
+          <math display="block">
+            <mrow>
+              <msub><mi>φ</mi><mi>X</mi></msub><mo>(</mo><mi>t</mi><mo>)</mo>
+              <mo>=</mo>
+              <mi mathvariant="normal">E</mi><mo>[</mo>
+              <msup><mi>e</mi><mrow><mi>i</mi><mi>t</mi><mi>X</mi></mrow></msup>
+              <mo>]</mo>
+            </mrow>
+          </math>
+        </div>
+        <p>Property for independent variables:</p>
+        <article class="step">
+          <div class="formula">
+            <span class="formula-row">
+              <math><mrow><mi mathvariant="normal">E</mi><mo>[</mo><mi>A</mi><mi>B</mi><mo>]</mo><mo>=</mo><msubsup><mo>∫</mo><mrow><mo>-</mo><mi>∞</mi></mrow><mi>∞</mi></msubsup><msubsup><mo>∫</mo><mrow><mo>-</mo><mi>∞</mi></mrow><mi>∞</mi></msubsup><mi>A</mi><mo>(</mo><msub><mi>y</mi><mn>1</mn></msub><mo>)</mo><mi>B</mi><mo>(</mo><msub><mi>y</mi><mn>2</mn></msub><mo>)</mo><mi>f</mi><mo>(</mo><msub><mi>y</mi><mn>1</mn></msub><mo>,</mo><msub><mi>y</mi><mn>2</mn></msub><mo>)</mo><mi>d</mi><msub><mi>y</mi><mn>1</mn></msub><mi>d</mi><msub><mi>y</mi><mn>2</mn></msub></mrow></math>
+            </span>
+            <span class="formula-row">
+              <math><mrow><msub><mi>Y</mi><mn>1</mn></msub><mo>⊥</mo><msub><mi>Y</mi><mn>2</mn></msub><mo>⇒</mo><mi>f</mi><mo>(</mo><msub><mi>y</mi><mn>1</mn></msub><mo>,</mo><msub><mi>y</mi><mn>2</mn></msub><mo>)</mo><mo>=</mo><msub><mi>f</mi><mn>1</mn></msub><mo>(</mo><msub><mi>y</mi><mn>1</mn></msub><mo>)</mo><msub><mi>f</mi><mn>2</mn></msub><mo>(</mo><msub><mi>y</mi><mn>2</mn></msub><mo>)</mo></mrow></math>
+            </span>
+            <span class="formula-row">
+              <math><mrow><mo>=</mo><mo>(</mo><msubsup><mo>∫</mo><mrow><mo>-</mo><mi>∞</mi></mrow><mi>∞</mi></msubsup><mi>A</mi><mo>(</mo><msub><mi>y</mi><mn>1</mn></msub><mo>)</mo><msub><mi>f</mi><mn>1</mn></msub><mo>(</mo><msub><mi>y</mi><mn>1</mn></msub><mo>)</mo><mi>d</mi><msub><mi>y</mi><mn>1</mn></msub><mo>)</mo><mo>(</mo><msubsup><mo>∫</mo><mrow><mo>-</mo><mi>∞</mi></mrow><mi>∞</mi></msubsup><mi>B</mi><mo>(</mo><msub><mi>y</mi><mn>2</mn></msub><mo>)</mo><msub><mi>f</mi><mn>2</mn></msub><mo>(</mo><msub><mi>y</mi><mn>2</mn></msub><mo>)</mo><mi>d</mi><msub><mi>y</mi><mn>2</mn></msub><mo>)</mo></mrow></math>
+            </span>
+            <span class="formula-row">
+              <math><mrow><mo>=</mo><mi mathvariant="normal">E</mi><mo>[</mo><mi>A</mi><mo>]</mo><mi mathvariant="normal">E</mi><mo>[</mo><mi>B</mi><mo>]</mo></mrow></math>
+            </span>
+          </div>
+        </article>
+        <p>If <span class="math-inline">X = Y<sub>1</sub> + Y<sub>2</sub></span> and <span class="math-inline">Y<sub>1</sub></span>, <span class="math-inline">Y<sub>2</sub></span> are independent, then</p>
+        <article class="step">
+          <div class="formula">
+            <span class="formula-row">
+              <math><mrow><msub><mi>φ</mi><mi>X</mi></msub><mo>(</mo><mi>t</mi><mo>)</mo></mrow></math>
+            </span>
+            <span class="formula-row">
+              <math><mrow><mo>=</mo><mi mathvariant="normal">E</mi><mo>[</mo><msup><mi>e</mi><mrow><mi>i</mi><mi>t</mi><mo>(</mo><msub><mi>Y</mi><mn>1</mn></msub><mo>+</mo><msub><mi>Y</mi><mn>2</mn></msub><mo>)</mo></mrow></msup><mo>]</mo></mrow></math>
+            </span>
+            <span class="formula-row">
+              <math><mrow><mo>=</mo><mi mathvariant="normal">E</mi><mo>[</mo><msup><mi>e</mi><mrow><mi>i</mi><mi>t</mi><msub><mi>Y</mi><mn>1</mn></msub></mrow></msup><msup><mi>e</mi><mrow><mi>i</mi><mi>t</mi><msub><mi>Y</mi><mn>2</mn></msub></mrow></msup><mo>]</mo></mrow></math>
+            </span>
+            <span class="formula-row">
+              <math><mrow><mo>=</mo><mi mathvariant="normal">E</mi><mo>[</mo><msup><mi>e</mi><mrow><mi>i</mi><mi>t</mi><msub><mi>Y</mi><mn>1</mn></msub></mrow></msup><mo>]</mo><mi mathvariant="normal">E</mi><mo>[</mo><msup><mi>e</mi><mrow><mi>i</mi><mi>t</mi><msub><mi>Y</mi><mn>2</mn></msub></mrow></msup><mo>]</mo></mrow></math>
+            </span>
+            <span class="formula-row">
+              <math><mrow><mo>=</mo><msub><mi>φ</mi><msub><mi>Y</mi><mn>1</mn></msub></msub><mo>(</mo><mi>t</mi><mo>)</mo><msub><mi>φ</mi><msub><mi>Y</mi><mn>2</mn></msub></msub><mo>(</mo><mi>t</mi><mo>)</mo></mrow></math>
+            </span>
+          </div>
+        </article>
+        <p class="muted">This is the key multiplication rule used for the sum of many independent variables.</p>
+      </section>
+
+      <section id="standardize" class="panel">
+        <h2>2. Standardize the Variables</h2>
+        <div class="proof-grid">
+          <article class="step">
+            <h3>Start with the sum</h3>
+            <p>The sum is</p>
+            <div class="formula center">
+              <math display="block">
+                <mrow>
+                  <mi>Y</mi><mo>=</mo>
+                  <munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover>
+                  <msub><mi>X</mi><mi>i</mi></msub>
+                </mrow>
+              </math>
+            </div>
+          </article>
+          <article class="step">
+            <h3>Center and scale</h3>
+            <p>Define the standardized single-variable fluctuation</p>
+            <div class="formula center">
+              <math display="block">
+                <mrow><mi>W</mi><mo>=</mo><mfrac><mrow><mi>X</mi><mo>-</mo><mi>μ</mi></mrow><mi>σ</mi></mfrac></mrow>
+              </math>
+            </div>
+            <p>so <span class="math-inline">𝔼[W] = 0</span> and <span class="math-inline">𝔼[W²] = 1</span>.</p>
+          </article>
+        </div>
+        <p>Then the original sum and the normalized fluctuation are</p>
+        <div class="formula center">
+          <math display="block">
+            <mrow>
+              <mi>Y</mi><mo>=</mo><mi>n</mi><mi>μ</mi><mo>+</mo><mi>σ</mi>
+              <munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover>
+              <msub><mi>W</mi><mi>i</mi></msub>
+              <mo>,</mo><mspace width="1.2em"></mspace>
+              <mi>Z</mi><mo>=</mo>
+              <mfrac><mn>1</mn><msqrt><mi>n</mi></msqrt></mfrac>
+              <munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover>
+              <msub><mi>W</mi><mi>i</mi></msub>
+            </mrow>
+          </math>
+        </div>
+      </section>
+
+      <section id="limit" class="panel">
+        <h2>3. Characteristic-Function Limit</h2>
+        <p>First write the small-argument expansion of the single-variable characteristic function in a general variable <span class="math-inline">u</span>:</p>
+        <div class="formula">
+          <span class="formula-row">
+            <math><mrow><msub><mi>φ</mi><mi>W</mi></msub><mo>(</mo><mi>u</mi><mo>)</mo></mrow></math>
+          </span>
+          <span class="formula-row">
+            <math><mrow><mo>=</mo><mi mathvariant="normal">E</mi><mo>[</mo><msup><mi>e</mi><mrow><mi>i</mi><mi>u</mi><mi>W</mi></mrow></msup><mo>]</mo></mrow></math>
+          </span>
+          <span class="formula-row">
+            <math><mrow><mo>=</mo><mi mathvariant="normal">E</mi><mo>[</mo><mn>1</mn><mo>+</mo><mi>i</mi><mi>u</mi><mi>W</mi><mo>-</mo><mfrac><msup><mi>u</mi><mn>2</mn></msup><mn>2</mn></mfrac><msup><mi>W</mi><mn>2</mn></msup><mo>+</mo><mi>O</mi><mo>(</mo><msup><mi>u</mi><mn>3</mn></msup><mo>)</mo><mo>]</mo></mrow></math>
+          </span>
+          <span class="formula-row">
+            <math><mrow><mo>=</mo><mn>1</mn><mo>+</mo><mi>i</mi><mi>u</mi><mi mathvariant="normal">E</mi><mo>[</mo><mi>W</mi><mo>]</mo><mo>-</mo><mfrac><msup><mi>u</mi><mn>2</mn></msup><mn>2</mn></mfrac><mi mathvariant="normal">E</mi><mo>[</mo><msup><mi>W</mi><mn>2</mn></msup><mo>]</mo><mo>+</mo><mi>O</mi><mo>(</mo><msup><mi>u</mi><mn>3</mn></msup><mo>)</mo></mrow></math>
+          </span>
+          <span class="formula-row">
+            <math><mrow><mo>=</mo><mn>1</mn><mo>-</mo><mfrac><msup><mi>u</mi><mn>2</mn></msup><mn>2</mn></mfrac><mo>+</mo><mi>O</mi><mo>(</mo><msup><mi>u</mi><mn>3</mn></msup><mo>)</mo></mrow></math>
+          </span>
+        </div>
+        <p>For the normalized sum <span class="math-inline">Z = n<sup>-1/2</sup>ΣW<sub>i</sub></span>, independence gives</p>
+        <div class="proof-grid">
+          <article class="step">
+            <div class="formula">
+              <span class="formula-row">
+                <math><mrow><msub><mi>φ</mi><mi>Z</mi></msub><mo>(</mo><mi>t</mi><mo>)</mo></mrow></math>
+              </span>
+              <span class="formula-row">
+                <math><mrow><mo>=</mo><msup><mrow><mo>[</mo><msub><mi>φ</mi><mi>W</mi></msub><mo>(</mo><mfrac><mi>t</mi><msqrt><mi>n</mi></msqrt></mfrac><mo>)</mo><mo>]</mo></mrow><mi>n</mi></msup></mrow></math>
+              </span>
+              <span class="formula-row">
+                <math><mrow><mo>=</mo><msup><mrow><mo>[</mo><mn>1</mn><mo>-</mo><mfrac><msup><mi>t</mi><mn>2</mn></msup><mrow><mn>2</mn><mi>n</mi></mrow></mfrac><mo>+</mo><mi>O</mi><mo>(</mo><msup><mi>n</mi><mrow><mo>-</mo><mn>3</mn><mo>/</mo><mn>2</mn></mrow></msup><mo>)</mo><mo>]</mo></mrow><mi>n</mi></msup></mrow></math>
+              </span>
+            </div>
+          </article>
+          <article class="step">
+            <h3>Why t / √n appears</h3>
+            <div class="formula">
+              <span class="formula-row">
+                <math><mrow><msup><mi>e</mi><mrow><mi>i</mi><mi>t</mi><mi>Z</mi></mrow></msup><mo>=</mo><msup><mi>e</mi><mrow><mi>i</mi><mi>t</mi><mfrac><mn>1</mn><msqrt><mi>n</mi></msqrt></mfrac><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover><msub><mi>W</mi><mi>i</mi></msub></mrow></msup></mrow></math>
+              </span>
+              <span class="formula-row">
+                <math><mrow><mo>=</mo><munderover><mo>∏</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover><msup><mi>e</mi><mrow><mi>i</mi><mo>(</mo><mi>t</mi><mo>/</mo><msqrt><mi>n</mi></msqrt><mo>)</mo><msub><mi>W</mi><mi>i</mi></msub></mrow></msup></mrow></math>
+              </span>
+              <span class="formula-row">
+                <math><mrow><mo>⇒</mo><mspace width="0.5em"></mspace><mi>u</mi><mo>=</mo><mfrac><mi>t</mi><msqrt><mi>n</mi></msqrt></mfrac></mrow></math>
+              </span>
+            </div>
+          </article>
+        </div>
+        <section id="remainder">
+          <h3>Why the higher-order terms disappear</h3>
+          <p>For <span class="math-inline">φ<sub>Z</sub>(t)</span>, the high-order part has the following scale:</p>
+          <div class="formula center">
+            <math display="block">
+              <mrow>
+                <mi>O</mi><mo>(</mo><msup><mi>u</mi><mn>3</mn></msup><mo>)</mo>
+                <mo>=</mo>
+                <mi>O</mi><mo>(</mo><msup><mrow><mo>(</mo><mi>t</mi><mo>/</mo><msqrt><mi>n</mi></msqrt><mo>)</mo></mrow><mn>3</mn></msup><mo>)</mo>
+                <mo>=</mo>
+                <mi>O</mi><mo>(</mo><msup><mi>n</mi><mrow><mo>-</mo><mn>3</mn><mo>/</mo><mn>2</mn></mrow></msup><mo>)</mo>
+              </mrow>
+            </math>
+          </div>
+          <p>Compare the two possible product scales:</p>
+          <div class="formula center">
+            <math display="block">
+              <mrow>
+                <msup><mrow><mo>(</mo><mn>1</mn><mo>+</mo><mfrac><mn>1</mn><mi>n</mi></mfrac><mo>)</mo></mrow><mi>n</mi></msup>
+                <mo>→</mo><mi>e</mi>
+              </mrow>
+            </math>
+          </div>
+          <div class="formula center">
+            <math display="block">
+              <mrow>
+                <msup><mrow><mo>(</mo><mn>1</mn><mo>+</mo><msup><mi>n</mi><mrow><mo>-</mo><mn>3</mn><mo>/</mo><mn>2</mn></mrow></msup><mo>)</mo></mrow><mi>n</mi></msup>
+                <mo>→</mo><mn>1</mn>
+              </mrow>
+            </math>
+          </div>
+          <p>Taking the limit,</p>
+          <div class="formula center">
+            <math display="block">
+              <mrow>
+                <msup>
+                  <mrow><mo>[</mo><mn>1</mn><mo>-</mo><mfrac><msup><mi>t</mi><mn>2</mn></msup><mrow><mn>2</mn><mi>n</mi></mrow></mfrac><mo>+</mo><mi>O</mi><mo>(</mo><msup><mi>n</mi><mrow><mo>-</mo><mn>3</mn><mo>/</mo><mn>2</mn></mrow></msup><mo>)</mo><mo>]</mo></mrow>
+                  <mi>n</mi>
+                </msup>
+                <mo>→</mo>
+                <msup><mi>e</mi><mrow><mo>-</mo><msup><mi>t</mi><mn>2</mn></msup><mo>/</mo><mn>2</mn></mrow></msup>
+              </mrow>
+            </math>
+          </div>
+        </section>
+        <p>To identify the limit, compute the characteristic function of a standard normal random variable <span class="math-inline">G ∼ N(0,1)</span>:</p>
+        <div class="formula">
+          <span class="formula-row">
+            <math><mrow><msub><mi>φ</mi><mi>G</mi></msub><mo>(</mo><mi>t</mi><mo>)</mo><mo>=</mo><mfrac><mn>1</mn><msqrt><mrow><mn>2</mn><mi>π</mi></mrow></msqrt></mfrac><msubsup><mo>∫</mo><mrow><mo>-</mo><mi>∞</mi></mrow><mi>∞</mi></msubsup><msup><mi>e</mi><mrow><mi>i</mi><mi>t</mi><mi>x</mi></mrow></msup><msup><mi>e</mi><mrow><mo>-</mo><msup><mi>x</mi><mn>2</mn></msup><mo>/</mo><mn>2</mn></mrow></msup><mi>d</mi><mi>x</mi></mrow></math>
+          </span>
+          <span class="formula-row">
+            <math><mrow><mo>=</mo><mfrac><mn>1</mn><msqrt><mrow><mn>2</mn><mi>π</mi></mrow></msqrt></mfrac><msubsup><mo>∫</mo><mrow><mo>-</mo><mi>∞</mi></mrow><mi>∞</mi></msubsup><msup><mi>e</mi><mrow><mo>-</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><msup><mrow><mo>(</mo><mi>x</mi><mo>-</mo><mi>i</mi><mi>t</mi><mo>)</mo></mrow><mn>2</mn></msup></mrow></msup><mi>d</mi><mi>x</mi><mspace width="0.5em"></mspace><msup><mi>e</mi><mrow><mo>-</mo><msup><mi>t</mi><mn>2</mn></msup><mo>/</mo><mn>2</mn></mrow></msup></mrow></math>
+          </span>
+          <span class="formula-row">
+            <math><mrow><mo>=</mo><msup><mi>e</mi><mrow><mo>-</mo><msup><mi>t</mi><mn>2</mn></msup><mo>/</mo><mn>2</mn></mrow></msup></mrow></math>
+          </span>
+        </div>
+        <p>The limiting characteristic function is therefore the one for <span class="math-inline">N(0,1)</span>, so</p>
+        <div class="formula center">
+          <math display="block">
+            <mrow>
+              <mi>Z</mi>
+              <mspace width="0.8em"></mspace>
+              <mover><mo>→</mo><mi>d</mi></mover>
+              <mspace width="0.8em"></mspace>
+              <mi mathvariant="normal">N</mi><mo>(</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo>)</mo>
+            </mrow>
+          </math>
+        </div>
+        <p>Returning to the original sum, for large <span class="math-inline">n</span> this means</p>
+        <div class="formula center">
+          <math display="block">
+            <mrow>
+              <mi>Y</mi><mo>∼</mo>
+              <mi mathvariant="normal">N</mi>
+              <mo>(</mo><mi>n</mi><mi>μ</mi><mo>,</mo><mi>n</mi><msup><mi>σ</mi><mn>2</mn></msup><mo>)</mo>
+            </mrow>
+          </math>
+        </div>
+      </section>
+    </div>
+  </section>
+</main>
+</body>
+</html>
