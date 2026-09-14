@@ -1,0 +1,1060 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Central Limit Theorem Proof Slides</title>
+  <style>
+    /* ===========================================
+       VIEWPORT FITTING: MANDATORY BASE STYLES
+       =========================================== */
+
+    html, body {
+      height: 100%;
+      overflow-x: hidden;
+    }
+
+    html {
+      scroll-snap-type: y mandatory;
+      scroll-behavior: smooth;
+    }
+
+    .slide {
+      width: 100vw;
+      height: 100vh;
+      height: 100dvh;
+      overflow: hidden;
+      scroll-snap-align: start;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+    }
+
+    .slide-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      max-height: 100%;
+      overflow: hidden;
+      padding: var(--slide-padding);
+    }
+
+    :root {
+      --title-size: clamp(2rem, 6.2vw, 5.2rem);
+      --h2-size: clamp(1.55rem, 4.35vw, 3.5rem);
+      --h3-size: clamp(1.1rem, 2.9vw, 2.15rem);
+      --body-size: clamp(0.95rem, 1.9vw, 1.45rem);
+      --small-size: clamp(0.78rem, 1.18vw, 1rem);
+
+      --slide-padding: clamp(1rem, 4vw, 4rem);
+      --content-gap: clamp(0.5rem, 2vw, 2rem);
+      --element-gap: clamp(0.25rem, 1vw, 1rem);
+    }
+
+    .card, .container, .content-box {
+      max-width: min(90vw, 1000px);
+      max-height: min(80vh, 700px);
+    }
+
+    .feature-list, .bullet-list {
+      gap: clamp(0.4rem, 1vh, 1rem);
+    }
+
+    .feature-list li, .bullet-list li {
+      font-size: var(--body-size);
+      line-height: 1.4;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+      gap: clamp(0.5rem, 1.5vw, 1rem);
+    }
+
+    img, .image-container {
+      max-width: 100%;
+      max-height: min(50vh, 400px);
+      object-fit: contain;
+    }
+
+    @media (max-height: 700px) {
+      :root {
+        --slide-padding: clamp(0.75rem, 3vw, 2rem);
+        --content-gap: clamp(0.4rem, 1.5vw, 1rem);
+        --title-size: clamp(1.45rem, 5vw, 3rem);
+        --h2-size: clamp(1.15rem, 3.55vw, 2.1rem);
+      }
+    }
+
+    @media (max-height: 600px) {
+      :root {
+        --slide-padding: clamp(0.5rem, 2.5vw, 1.5rem);
+        --content-gap: clamp(0.3rem, 1vw, 0.75rem);
+        --title-size: clamp(1.25rem, 4.3vw, 2.2rem);
+        --body-size: clamp(0.78rem, 1.32vw, 1rem);
+      }
+
+      .nav-dots, .keyboard-hint, .decorative {
+        display: none;
+      }
+    }
+
+    @media (max-height: 500px) {
+      :root {
+        --slide-padding: clamp(0.4rem, 2vw, 1rem);
+        --title-size: clamp(1.05rem, 3.8vw, 1.7rem);
+        --h2-size: clamp(0.98rem, 2.75vw, 1.4rem);
+        --body-size: clamp(0.68rem, 1.08vw, 0.9rem);
+      }
+    }
+
+    @media (max-width: 600px) {
+      :root {
+        --title-size: clamp(1.45rem, 8vw, 2.9rem);
+      }
+
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.2s !important;
+      }
+
+      html {
+        scroll-behavior: auto;
+      }
+    }
+
+    :root {
+      color-scheme: light;
+      --paper: #f7f1e4;
+      --ink: #1e2424;
+      --muted: #5f6a67;
+      --green: #176c63;
+      --red: #b23b31;
+      --blue: #275c8f;
+      --gold: #c08b35;
+      --rule: rgba(30, 36, 36, 0.18);
+      --shadow: 0 22px 70px rgba(30, 36, 36, 0.13);
+      --mono: "Cambria Math", Cambria, "Times New Roman", serif;
+      font-family: Georgia, "Times New Roman", serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background:
+        linear-gradient(90deg, rgba(30, 36, 36, 0.055) 1px, transparent 1px),
+        linear-gradient(180deg, rgba(30, 36, 36, 0.04) 1px, transparent 1px),
+        var(--paper);
+      background-size: 48px 48px;
+      color: var(--ink);
+      line-height: 1.45;
+    }
+
+    main {
+      isolation: isolate;
+    }
+
+    h1, h2, h3, p {
+      margin: 0;
+    }
+
+    h1 {
+      max-width: 13ch;
+      font-size: var(--title-size);
+      line-height: 0.94;
+      letter-spacing: 0;
+      font-weight: 760;
+    }
+
+    h2 {
+      max-width: 19ch;
+      font-size: var(--h2-size);
+      line-height: 1;
+      letter-spacing: 0;
+      font-weight: 730;
+    }
+
+    h3 {
+      font-size: var(--h3-size);
+      line-height: 1.08;
+      letter-spacing: 0;
+      font-weight: 700;
+    }
+
+    p {
+      max-width: 66ch;
+      font-size: var(--body-size);
+      color: var(--muted);
+    }
+
+    math {
+      font-family: var(--mono);
+      font-size: clamp(1rem, 1.75vw, 1.55rem);
+    }
+
+    .kicker {
+      width: fit-content;
+      padding: 0.34rem 0.55rem;
+      border: 1px solid var(--rule);
+      background: rgba(255, 255, 255, 0.36);
+      color: var(--green);
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: var(--small-size);
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .lede {
+      max-width: 46ch;
+      font-size: clamp(1.15rem, 2.25vw, 1.9rem);
+      color: var(--ink);
+    }
+
+    .accent-line {
+      width: min(24vw, 220px);
+      height: 5px;
+      margin: clamp(0.8rem, 2vh, 1.4rem) 0;
+      background: linear-gradient(90deg, var(--red), var(--gold), var(--green));
+    }
+
+    .two-col {
+      display: grid;
+      grid-template-columns: minmax(0, 0.86fr) minmax(0, 1.14fr);
+      gap: var(--content-gap);
+      align-items: center;
+      width: min(1360px, 100%);
+      margin: 0 auto;
+    }
+
+    .stack {
+      display: grid;
+      gap: var(--content-gap);
+    }
+
+    .tight {
+      gap: var(--element-gap);
+    }
+
+    .sheet {
+      padding: clamp(0.85rem, 2vw, 1.5rem);
+      border: 1px solid var(--rule);
+      background: rgba(255, 255, 255, 0.58);
+      box-shadow: var(--shadow);
+    }
+
+    .formula {
+      display: grid;
+      gap: clamp(0.3rem, 0.9vh, 0.68rem);
+      min-width: 0;
+      padding: clamp(0.7rem, 1.8vw, 1.15rem);
+      border-left: clamp(4px, 0.55vw, 8px) solid var(--green);
+      background: rgba(255, 255, 255, 0.66);
+      font-family: var(--mono);
+      overflow: hidden;
+    }
+
+    .formula.center {
+      place-items: center;
+      text-align: center;
+    }
+
+    .formula.compact math {
+      font-size: clamp(0.86rem, 1.48vw, 1.25rem);
+    }
+
+    .formula-row {
+      min-width: 0;
+      transform-origin: left center;
+    }
+
+    .tiny-math math {
+      font-size: clamp(0.7rem, 1.12vw, 0.96rem);
+    }
+
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: clamp(0.45rem, 1vw, 0.8rem);
+      width: min(1360px, 100%);
+      margin: clamp(0.9rem, 2vh, 1.4rem) auto 0;
+    }
+
+    .step {
+      display: grid;
+      align-content: center;
+      min-height: clamp(84px, 16vh, 150px);
+      padding: clamp(0.6rem, 1.5vw, 1rem);
+      border: 1px solid var(--rule);
+      background: rgba(255, 255, 255, 0.52);
+      box-shadow: 0 12px 38px rgba(30, 36, 36, 0.08);
+    }
+
+    .step strong {
+      display: block;
+      color: var(--ink);
+      font-size: clamp(0.92rem, 1.55vw, 1.25rem);
+      line-height: 1.18;
+    }
+
+    .step span {
+      margin-top: 0.4rem;
+      color: var(--muted);
+      font-size: var(--small-size);
+      line-height: 1.25;
+    }
+
+    .bullet-list {
+      display: grid;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .bullet-list li {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: start;
+      gap: 0.7rem;
+      color: var(--muted);
+    }
+
+    .bullet-list li::before {
+      content: "";
+      width: 0.6rem;
+      height: 0.6rem;
+      margin-top: 0.42rem;
+      background: var(--red);
+    }
+
+    .formula-list {
+      display: grid;
+      gap: clamp(0.45rem, 1.3vh, 0.9rem);
+    }
+
+    .formula-list .formula {
+      border-left-color: var(--red);
+    }
+
+    .formula-list math {
+      font-size: clamp(0.95rem, 1.62vw, 1.42rem);
+    }
+
+    .math-inline {
+      font-family: var(--mono);
+      color: var(--ink);
+    }
+
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.55rem;
+    }
+
+    .badge {
+      padding: 0.32rem 0.55rem;
+      border: 1px solid var(--rule);
+      background: rgba(255, 255, 255, 0.5);
+      color: var(--ink);
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: var(--small-size);
+      font-weight: 700;
+    }
+
+    .number {
+      position: absolute;
+      right: var(--slide-padding);
+      top: var(--slide-padding);
+      color: rgba(30, 36, 36, 0.15);
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: clamp(2.2rem, 8vw, 7rem);
+      font-weight: 900;
+      line-height: 0.8;
+      pointer-events: none;
+    }
+
+    .rule {
+      height: 1px;
+      width: 100%;
+      background: var(--rule);
+    }
+
+    .mini-note {
+      padding: clamp(0.55rem, 1.4vw, 0.9rem);
+      border-top: 4px solid var(--gold);
+      background: rgba(255, 255, 255, 0.5);
+      color: var(--muted);
+      font-size: var(--small-size);
+    }
+
+    .progress {
+      position: fixed;
+      left: 0;
+      right: 0;
+      top: 0;
+      z-index: 20;
+      height: 4px;
+      background: rgba(30, 36, 36, 0.12);
+    }
+
+    .progress span {
+      display: block;
+      width: var(--progress, 0%);
+      height: 100%;
+      background: linear-gradient(90deg, var(--red), var(--green), var(--blue));
+      transition: width 260ms ease;
+    }
+
+    .slide-index {
+      position: fixed;
+      right: clamp(0.8rem, 2vw, 1.3rem);
+      bottom: clamp(0.7rem, 1.8vw, 1.1rem);
+      z-index: 20;
+      padding: 0.35rem 0.55rem;
+      border: 1px solid var(--rule);
+      background: rgba(247, 241, 228, 0.82);
+      backdrop-filter: blur(8px);
+      color: var(--ink);
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: var(--small-size);
+      font-weight: 700;
+    }
+
+    .nav-dots {
+      position: fixed;
+      top: 50%;
+      right: clamp(0.7rem, 1.5vw, 1rem);
+      z-index: 20;
+      display: grid;
+      gap: 0.45rem;
+      transform: translateY(-50%);
+    }
+
+    .nav-dots button {
+      width: 10px;
+      height: 10px;
+      padding: 0;
+      border: 1px solid var(--ink);
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .nav-dots button[aria-current="true"] {
+      background: var(--ink);
+    }
+
+    .keyboard-hint {
+      position: fixed;
+      left: clamp(0.8rem, 2vw, 1.3rem);
+      bottom: clamp(0.7rem, 1.8vw, 1.1rem);
+      z-index: 20;
+      color: var(--muted);
+      font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+      font-size: var(--small-size);
+    }
+
+    .decorative {
+      position: absolute;
+      inset: auto auto clamp(1rem, 4vh, 3rem) var(--slide-padding);
+      width: min(34vw, 320px);
+      height: min(34vw, 320px);
+      border: 1px solid var(--rule);
+      background:
+        linear-gradient(135deg, transparent 49%, rgba(178, 59, 49, 0.65) 50%, transparent 51%),
+        linear-gradient(45deg, transparent 49%, rgba(23, 108, 99, 0.6) 50%, transparent 51%);
+      opacity: 0.36;
+      pointer-events: none;
+    }
+
+    .reveal {
+      opacity: 0;
+      transform: translateY(16px);
+      transition: opacity 520ms ease, transform 520ms ease;
+    }
+
+    .slide.is-active .reveal {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .slide.is-active .reveal:nth-child(2) { transition-delay: 70ms; }
+    .slide.is-active .reveal:nth-child(3) { transition-delay: 140ms; }
+    .slide.is-active .reveal:nth-child(4) { transition-delay: 210ms; }
+
+    @media (max-width: 820px) {
+      .two-col {
+        grid-template-columns: 1fr;
+      }
+
+      .steps {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      h1, h2 {
+        max-width: 13ch;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .steps {
+        grid-template-columns: 1fr;
+      }
+
+      .step {
+        min-height: auto;
+      }
+
+      .formula {
+        padding: 0.56rem;
+      }
+    }
+
+    @media (max-height: 500px) and (min-width: 600px) {
+      .two-col {
+        grid-template-columns: minmax(0, 0.82fr) minmax(0, 1.18fr);
+        gap: clamp(0.45rem, 1.2vw, 0.75rem);
+      }
+
+      .stack {
+        gap: clamp(0.34rem, 1.3vh, 0.55rem);
+      }
+
+      .steps {
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 0.4rem;
+      }
+
+      .step {
+        min-height: 68px;
+        padding: 0.45rem;
+      }
+
+      .step strong {
+        font-size: clamp(0.62rem, 1.45vw, 0.76rem);
+      }
+
+      .step span,
+      .mini-note,
+      .badge,
+      .kicker {
+        font-size: clamp(0.56rem, 1.2vw, 0.7rem);
+      }
+
+      .formula {
+        gap: 0.2rem;
+        padding: 0.45rem;
+      }
+
+      .formula math {
+        font-size: clamp(0.62rem, 1.35vw, 0.84rem);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="progress" aria-hidden="true"><span></span></div>
+  <div class="slide-index" aria-live="polite">1 / 11</div>
+  <div class="keyboard-hint">↑ ↓ / ← →</div>
+  <nav class="nav-dots" aria-label="Slide navigation"></nav>
+
+  <main>
+    <section class="slide" aria-labelledby="s1-title">
+      <div class="decorative"></div>
+      <div class="slide-content">
+        <div class="two-col">
+          <div class="stack">
+            <p class="kicker reveal">Characteristic-function proof</p>
+            <h1 id="s1-title" class="reveal">Central Limit Theorem</h1>
+            <div class="accent-line reveal"></div>
+            <p class="lede reveal">When many independent variables with the same distribution are added together, their sum approaches a normal distribution.</p>
+          </div>
+          <div class="sheet stack reveal">
+            <div class="formula center">
+              <math display="block">
+                <mrow>
+                  <mi>Z</mi><mo>=</mo>
+                  <mfrac>
+                    <mrow><mi>Y</mi><mo>-</mo><mi>n</mi><mi>μ</mi></mrow>
+                    <mrow><mi>σ</mi><msqrt><mi>n</mi></msqrt></mrow>
+                  </mfrac>
+                  <mspace width="0.8em"></mspace>
+                  <mover><mo>→</mo><mi>d</mi></mover>
+                  <mspace width="0.8em"></mspace>
+                  <mi mathvariant="normal">N</mi><mo>(</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo>)</mo>
+                </mrow>
+              </math>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" aria-labelledby="s2-title">
+      <span class="number">01</span>
+      <div class="slide-content">
+        <div class="two-col">
+          <div class="stack">
+            <p class="kicker reveal">The target</p>
+            <h2 id="s2-title" class="reveal">Start with i.i.d. variables</h2>
+            <p class="reveal">Let <span class="math-inline">X<sub>1</sub>, ..., X<sub>n</sub></span> be independent and identically distributed with finite mean and variance.</p>
+            <p class="mini-note reveal"><span class="math-inline">i.i.d.</span> means independent and identically distributed: each variable follows the same distribution, and knowing one does not determine another.</p>
+            <div class="badge-row reveal">
+              <span class="badge">i.i.d.</span>
+              <span class="badge">finite variance</span>
+              <span class="badge">sum Y</span>
+            </div>
+          </div>
+          <div class="sheet stack reveal">
+            <div class="formula center">
+              <math display="block">
+                <mrow>
+                  <mi>Y</mi><mo>∼</mo>
+                  <mi mathvariant="normal">N</mi>
+                  <mo>(</mo><mi>n</mi><mi>μ</mi><mo>,</mo><mi>n</mi><msup><mi>σ</mi><mn>2</mn></msup><mo>)</mo>
+                </mrow>
+              </math>
+            </div>
+            <div class="formula center">
+              <math display="block">
+                <mrow>
+                  <mi>Z</mi><mo>=</mo>
+                  <mfrac>
+                    <mrow><mi>Y</mi><mo>-</mo><mi>n</mi><mi>μ</mi></mrow>
+                    <mrow><mi>σ</mi><msqrt><mi>n</mi></msqrt></mrow>
+                  </mfrac>
+                </mrow>
+              </math>
+            </div>
+            <div class="formula center">
+              <math display="block">
+                <mrow>
+                  <mi>Z</mi><mspace width="0.8em"></mspace><mover><mo>→</mo><mi>d</mi></mover><mspace width="0.8em"></mspace>
+                  <mi mathvariant="normal">N</mi><mo>(</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo>)</mo>
+                </mrow>
+              </math>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" aria-labelledby="s3-title">
+      <span class="number">02</span>
+      <div class="slide-content">
+        <div class="two-col">
+          <div class="stack">
+            <p class="kicker reveal">Equivalent claim</p>
+            <h2 id="s3-title" class="reveal">Prove the normalized version</h2>
+            <p class="reveal">Once <span class="math-inline">Z</span> converges to standard normal, the original sum has mean <span class="math-inline">nμ</span> and variance <span class="math-inline">nσ²</span>.</p>
+          </div>
+          <div class="sheet stack reveal">
+            <div class="formula center">
+              <math display="block">
+                <mrow>
+                  <mi>Z</mi><mo>=</mo>
+                  <mfrac>
+                    <mrow><mi>Y</mi><mo>-</mo><mi>n</mi><mi>μ</mi></mrow>
+                    <mrow><mi>σ</mi><msqrt><mi>n</mi></msqrt></mrow>
+                  </mfrac>
+                </mrow>
+              </math>
+            </div>
+            <div class="formula center">
+              <math display="block">
+                <mrow>
+                  <mi>Z</mi><mspace width="0.8em"></mspace><mover><mo>→</mo><mi>d</mi></mover><mspace width="0.8em"></mspace>
+                  <mi mathvariant="normal">N</mi><mo>(</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo>)</mo>
+                </mrow>
+              </math>
+            </div>
+            <div class="formula center">
+              <math display="block">
+                <mrow>
+                  <mi>Y</mi><mo>∼</mo>
+                  <mi mathvariant="normal">N</mi>
+                  <mo>(</mo><mi>n</mi><mi>μ</mi><mo>,</mo><mi>n</mi><msup><mi>σ</mi><mn>2</mn></msup><mo>)</mo>
+                </mrow>
+              </math>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" aria-labelledby="s4-title">
+      <span class="number">03</span>
+      <div class="slide-content">
+        <div class="stack">
+          <p class="kicker reveal">Proof map</p>
+          <h2 id="s4-title" class="reveal">The whole proof in five moves</h2>
+          <div class="steps reveal" aria-label="Proof flow">
+            <div class="step"><strong>define φ<sub>X</sub>(t)</strong></div>
+            <div class="step"><strong>use independence</strong><span>sums become products</span></div>
+            <div class="step"><strong>standardize X</strong><span>mean 0, variance 1</span></div>
+            <div class="step"><strong>expand φ<sub>W</sub>(u)</strong><span>W is standardized X</span></div>
+            <div class="step"><strong>take n → ∞</strong><span>recover the Gaussian curve</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" aria-labelledby="s5-title">
+      <span class="number">04</span>
+      <div class="slide-content">
+        <div class="two-col">
+          <div class="stack">
+            <p class="kicker reveal">Tool</p>
+            <h2 id="s5-title" class="reveal">Characteristic function</h2>
+            <p class="reveal">For any random variable <span class="math-inline">X</span>, its characteristic function is an expectation of a complex exponential.</p>
+          </div>
+          <div class="sheet stack reveal">
+            <div class="formula center">
+              <math display="block">
+                <mrow>
+                  <msub><mi>φ</mi><mi>X</mi></msub><mo>(</mo><mi>t</mi><mo>)</mo>
+                  <mo>=</mo>
+                  <mi mathvariant="normal">E</mi><mo>[</mo>
+                  <msup><mi>e</mi><mrow><mi>i</mi><mi>t</mi><mi>X</mi></mrow></msup>
+                  <mo>]</mo>
+                </mrow>
+              </math>
+            </div>
+            <p class="mini-note">The limit theorem will be proved by showing that <span class="math-inline">φ<sub>Z</sub>(t)</span> converges to the characteristic function of <span class="math-inline">N(0,1)</span>.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" aria-labelledby="s6-title">
+      <span class="number">05</span>
+      <div class="slide-content">
+        <div class="two-col">
+          <div class="stack">
+            <p class="kicker reveal">Independence</p>
+            <h2 id="s6-title" class="reveal">The multiplication rule</h2>
+            <p class="reveal">If two random variables are independent, expectations of products factor into products of expectations.</p>
+          </div>
+          <div class="sheet stack reveal">
+            <div class="formula compact">
+              <span class="formula-row">
+                <math><mrow><mi mathvariant="normal">E</mi><mo>[</mo><mi>A</mi><mi>B</mi><mo>]</mo><mo>=</mo><msubsup><mo>∫</mo><mrow><mo>-</mo><mi>∞</mi></mrow><mi>∞</mi></msubsup><msubsup><mo>∫</mo><mrow><mo>-</mo><mi>∞</mi></mrow><mi>∞</mi></msubsup><mi>A</mi><mo>(</mo><msub><mi>y</mi><mn>1</mn></msub><mo>)</mo><mi>B</mi><mo>(</mo><msub><mi>y</mi><mn>2</mn></msub><mo>)</mo><mi>f</mi><mo>(</mo><msub><mi>y</mi><mn>1</mn></msub><mo>,</mo><msub><mi>y</mi><mn>2</mn></msub><mo>)</mo><mi>d</mi><msub><mi>y</mi><mn>1</mn></msub><mi>d</mi><msub><mi>y</mi><mn>2</mn></msub></mrow></math>
+              </span>
+              <span class="formula-row">
+                <math><mrow><msub><mi>Y</mi><mn>1</mn></msub><mo>⊥</mo><msub><mi>Y</mi><mn>2</mn></msub><mo>⇒</mo><mi>f</mi><mo>(</mo><msub><mi>y</mi><mn>1</mn></msub><mo>,</mo><msub><mi>y</mi><mn>2</mn></msub><mo>)</mo><mo>=</mo><msub><mi>f</mi><mn>1</mn></msub><mo>(</mo><msub><mi>y</mi><mn>1</mn></msub><mo>)</mo><msub><mi>f</mi><mn>2</mn></msub><mo>(</mo><msub><mi>y</mi><mn>2</mn></msub><mo>)</mo></mrow></math>
+              </span>
+              <span class="formula-row">
+                <math><mrow><mo>=</mo><mi mathvariant="normal">E</mi><mo>[</mo><mi>A</mi><mo>]</mo><mi mathvariant="normal">E</mi><mo>[</mo><mi>B</mi><mo>]</mo></mrow></math>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" aria-labelledby="s7-title">
+      <span class="number">06</span>
+      <div class="slide-content">
+        <div class="two-col">
+          <div class="stack">
+            <p class="kicker reveal">Sums</p>
+            <h2 id="s7-title" class="reveal">A sum turns into a product</h2>
+            <p class="reveal">For <span class="math-inline">X = Y<sub>1</sub> + Y<sub>2</sub></span>, the exponential separates; independence then factors the expectation.</p>
+          </div>
+          <div class="sheet stack reveal">
+            <div class="formula">
+              <span class="formula-row">
+                <math><mrow><msub><mi>φ</mi><mi>X</mi></msub><mo>(</mo><mi>t</mi><mo>)</mo><mo>=</mo><mi mathvariant="normal">E</mi><mo>[</mo><msup><mi>e</mi><mrow><mi>i</mi><mi>t</mi><mo>(</mo><msub><mi>Y</mi><mn>1</mn></msub><mo>+</mo><msub><mi>Y</mi><mn>2</mn></msub><mo>)</mo></mrow></msup><mo>]</mo></mrow></math>
+              </span>
+              <span class="formula-row">
+                <math><mrow><mo>=</mo><mi mathvariant="normal">E</mi><mo>[</mo><msup><mi>e</mi><mrow><mi>i</mi><mi>t</mi><msub><mi>Y</mi><mn>1</mn></msub></mrow></msup><msup><mi>e</mi><mrow><mi>i</mi><mi>t</mi><msub><mi>Y</mi><mn>2</mn></msub></mrow></msup><mo>]</mo></mrow></math>
+              </span>
+              <span class="formula-row">
+                <math><mrow><mo>=</mo><msub><mi>φ</mi><msub><mi>Y</mi><mn>1</mn></msub></msub><mo>(</mo><mi>t</mi><mo>)</mo><msub><mi>φ</mi><msub><mi>Y</mi><mn>2</mn></msub></msub><mo>(</mo><mi>t</mi><mo>)</mo></mrow></math>
+              </span>
+            </div>
+            <p class="mini-note">Repeated n times, this is the engine of the proof.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" aria-labelledby="s8-title">
+      <span class="number">07</span>
+      <div class="slide-content">
+        <div class="two-col">
+          <div class="stack">
+            <p class="kicker reveal">Standardize</p>
+            <h2 id="s8-title" class="reveal">Center and scale each variable</h2>
+            <div class="formula-list reveal" aria-label="Standardization formulas">
+              <div class="formula center">
+                <math display="block">
+                  <mrow><mi mathvariant="normal">E</mi><mo>[</mo><mi>W</mi><mo>]</mo><mo>=</mo><mn>0</mn><mo>,</mo><mspace width="0.7em"></mspace><mi mathvariant="normal">E</mi><mo>[</mo><msup><mi>W</mi><mn>2</mn></msup><mo>]</mo><mo>=</mo><mn>1</mn></mrow>
+                </math>
+              </div>
+            </div>
+          </div>
+          <div class="sheet stack reveal">
+            <div class="formula center">
+              <math display="block">
+                <mrow><mi>W</mi><mo>=</mo><mfrac><mrow><mi>X</mi><mo>-</mo><mi>μ</mi></mrow><mi>σ</mi></mfrac></mrow>
+              </math>
+            </div>
+            <div class="formula center compact">
+              <math display="block">
+                <mrow>
+                  <mi>Y</mi><mo>=</mo><mi>n</mi><mi>μ</mi><mo>+</mo><mi>σ</mi>
+                  <munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover>
+                  <msub><mi>W</mi><mi>i</mi></msub>
+                </mrow>
+              </math>
+            </div>
+            <div class="formula center compact">
+              <math display="block">
+                <mrow>
+                  <mi>Z</mi><mo>=</mo>
+                  <mfrac><mn>1</mn><msqrt><mi>n</mi></msqrt></mfrac>
+                  <munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover>
+                  <msub><mi>W</mi><mi>i</mi></msub>
+                </mrow>
+              </math>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" aria-labelledby="s9-title">
+      <span class="number">08</span>
+      <div class="slide-content">
+        <div class="two-col">
+          <div class="stack">
+            <p class="kicker reveal">Expansion</p>
+            <h2 id="s9-title" class="reveal">Read the small-argument behavior</h2>
+            <p class="reveal"><span class="math-inline">W</span> is the standardized version of <span class="math-inline">X</span>. Taylor expansion plus <span class="math-inline">E[W] = 0</span> and <span class="math-inline">E[W²] = 1</span> leaves the quadratic term.</p>
+          </div>
+          <div class="sheet stack reveal">
+            <div class="formula compact">
+              <span class="formula-row">
+                <math><mrow><msub><mi>φ</mi><mi>W</mi></msub><mo>(</mo><mi>u</mi><mo>)</mo><mo>=</mo><mi mathvariant="normal">E</mi><mo>[</mo><msup><mi>e</mi><mrow><mi>i</mi><mi>u</mi><mi>W</mi></mrow></msup><mo>]</mo></mrow></math>
+              </span>
+              <span class="formula-row">
+                <math><mrow><mo>=</mo><mi mathvariant="normal">E</mi><mo>[</mo><mn>1</mn><mo>+</mo><mi>i</mi><mi>u</mi><mi>W</mi><mo>-</mo><mfrac><msup><mi>u</mi><mn>2</mn></msup><mn>2</mn></mfrac><msup><mi>W</mi><mn>2</mn></msup><mo>+</mo><mi>O</mi><mo>(</mo><msup><mi>u</mi><mn>3</mn></msup><mo>)</mo><mo>]</mo></mrow></math>
+              </span>
+              <span class="formula-row">
+                <math><mrow><mo>=</mo><mn>1</mn><mo>-</mo><mfrac><msup><mi>u</mi><mn>2</mn></msup><mn>2</mn></mfrac><mo>+</mo><mi>O</mi><mo>(</mo><msup><mi>u</mi><mn>3</mn></msup><mo>)</mo></mrow></math>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" aria-labelledby="s10-title">
+      <span class="number">09</span>
+      <div class="slide-content">
+        <div class="two-col">
+          <div class="stack">
+            <p class="kicker reveal">Limit</p>
+            <h2 id="s10-title" class="reveal">The product becomes Gaussian</h2>
+            <div class="formula compact reveal">
+              <span class="formula-row">
+                <math><mrow><mi>Z</mi><mo>=</mo><mfrac><mn>1</mn><msqrt><mi>n</mi></msqrt></mfrac><munderover><mo>∑</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover><msub><mi>W</mi><mi>i</mi></msub></mrow></math>
+              </span>
+              <span class="formula-row">
+                <math><mrow><msup><mi>e</mi><mrow><mi>i</mi><mi>t</mi><mi>Z</mi></mrow></msup><mo>=</mo><munderover><mo>∏</mo><mrow><mi>i</mi><mo>=</mo><mn>1</mn></mrow><mi>n</mi></munderover><msup><mi>e</mi><mrow><mi>i</mi><mo>(</mo><mi>t</mi><mo>/</mo><msqrt><mi>n</mi></msqrt><mo>)</mo><msub><mi>W</mi><mi>i</mi></msub></mrow></msup></mrow></math>
+              </span>
+              <span class="formula-row">
+                <math><mrow><mo>⇒</mo><mspace width="0.5em"></mspace><mi>u</mi><mo>=</mo><mfrac><mi>t</mi><msqrt><mi>n</mi></msqrt></mfrac></mrow></math>
+              </span>
+            </div>
+          </div>
+          <div class="sheet stack reveal">
+            <div class="formula compact">
+              <span class="formula-row">
+                <math><mrow><msub><mi>φ</mi><mi>Z</mi></msub><mo>(</mo><mi>t</mi><mo>)</mo><mo>=</mo><msup><mrow><mo>[</mo><msub><mi>φ</mi><mi>W</mi></msub><mo>(</mo><mfrac><mi>t</mi><msqrt><mi>n</mi></msqrt></mfrac><mo>)</mo><mo>]</mo></mrow><mi>n</mi></msup></mrow></math>
+              </span>
+              <span class="formula-row">
+                <math><mrow><mo>=</mo><msup><mrow><mo>[</mo><mn>1</mn><mo>-</mo><mfrac><msup><mi>t</mi><mn>2</mn></msup><mrow><mn>2</mn><mi>n</mi></mrow></mfrac><mo>+</mo><mi>O</mi><mo>(</mo><msup><mi>n</mi><mrow><mo>-</mo><mn>3</mn><mo>/</mo><mn>2</mn></mrow></msup><mo>)</mo><mo>]</mo></mrow><mi>n</mi></msup></mrow></math>
+              </span>
+              <span class="formula-row">
+                <math><mrow><mo>→</mo><msup><mi>e</mi><mrow><mo>-</mo><msup><mi>t</mi><mn>2</mn></msup><mo>/</mo><mn>2</mn></mrow></msup></mrow></math>
+              </span>
+            </div>
+            <div class="formula center">
+              <math display="block">
+                <mrow>
+                  <msup><mrow><mo>(</mo><mn>1</mn><mo>+</mo><msup><mi>n</mi><mrow><mo>-</mo><mn>3</mn><mo>/</mo><mn>2</mn></mrow></msup><mo>)</mo></mrow><mi>n</mi></msup>
+                  <mo>→</mo><mn>1</mn>
+                </mrow>
+              </math>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide" aria-labelledby="s11-title">
+      <span class="number">10</span>
+      <div class="slide-content">
+        <div class="two-col">
+          <div class="stack">
+            <p class="kicker reveal">Identification</p>
+            <h2 id="s11-title" class="reveal">That limit is the standard normal</h2>
+            <p class="reveal">The standard normal characteristic function is exactly <span class="math-inline">e<sup>-t²/2</sup></span>, so the convergence of characteristic functions identifies the distributional limit.</p>
+          </div>
+          <div class="sheet stack reveal">
+            <div class="formula compact tiny-math">
+              <span class="formula-row">
+                <math><mrow><msub><mi>φ</mi><mi>G</mi></msub><mo>(</mo><mi>t</mi><mo>)</mo><mo>=</mo><mfrac><mn>1</mn><msqrt><mrow><mn>2</mn><mi>π</mi></mrow></msqrt></mfrac><msubsup><mo>∫</mo><mrow><mo>-</mo><mi>∞</mi></mrow><mi>∞</mi></msubsup><msup><mi>e</mi><mrow><mi>i</mi><mi>t</mi><mi>x</mi></mrow></msup><msup><mi>e</mi><mrow><mo>-</mo><msup><mi>x</mi><mn>2</mn></msup><mo>/</mo><mn>2</mn></mrow></msup><mi>d</mi><mi>x</mi></mrow></math>
+              </span>
+              <span class="formula-row">
+                <math><mrow><mo>=</mo><mfrac><mn>1</mn><msqrt><mrow><mn>2</mn><mi>π</mi></mrow></msqrt></mfrac><msubsup><mo>∫</mo><mrow><mo>-</mo><mi>∞</mi></mrow><mi>∞</mi></msubsup><msup><mi>e</mi><mrow><mo>-</mo><mfrac><mn>1</mn><mn>2</mn></mfrac><msup><mrow><mo>(</mo><mi>x</mi><mo>-</mo><mi>i</mi><mi>t</mi><mo>)</mo></mrow><mn>2</mn></msup></mrow></msup><mi>d</mi><mi>x</mi><mspace width="0.5em"></mspace><msup><mi>e</mi><mrow><mo>-</mo><msup><mi>t</mi><mn>2</mn></msup><mo>/</mo><mn>2</mn></mrow></msup></mrow></math>
+              </span>
+              <span class="formula-row">
+                <math><mrow><mo>=</mo><msup><mi>e</mi><mrow><mo>-</mo><msup><mi>t</mi><mn>2</mn></msup><mo>/</mo><mn>2</mn></mrow></msup></mrow></math>
+              </span>
+            </div>
+            <div class="rule"></div>
+            <div class="formula center">
+              <math display="block">
+                <mrow>
+                  <mi>Z</mi><mo>∼</mo>
+                  <mi mathvariant="normal">N</mi><mo>(</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo>)</mo>
+                </mrow>
+              </math>
+            </div>
+            <div class="formula center">
+              <math display="block">
+                <mrow>
+                  <mi>Y</mi><mo>∼</mo>
+                  <mi mathvariant="normal">N</mi>
+                  <mo>(</mo><mi>n</mi><mi>μ</mi><mo>,</mo><mi>n</mi><msup><mi>σ</mi><mn>2</mn></msup><mo>)</mo>
+                </mrow>
+              </math>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    class PresentationController {
+      constructor() {
+        this.slides = Array.from(document.querySelectorAll(".slide"));
+        this.dots = document.querySelector(".nav-dots");
+        this.progress = document.querySelector(".progress span");
+        this.indexLabel = document.querySelector(".slide-index");
+        this.current = 0;
+        this.lastWheel = 0;
+        this.touchStartY = 0;
+        this.buildDots();
+        this.observeSlides();
+        this.bindEvents();
+        this.update(0);
+      }
+
+      buildDots() {
+        this.slides.forEach((slide, index) => {
+          const button = document.createElement("button");
+          button.type = "button";
+          button.setAttribute("aria-label", `Go to slide ${index + 1}`);
+          button.addEventListener("click", () => this.goTo(index));
+          this.dots.appendChild(button);
+        });
+      }
+
+      observeSlides() {
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              const index = this.slides.indexOf(entry.target);
+              this.update(index);
+            }
+          });
+        }, { threshold: 0.58 });
+
+        this.slides.forEach((slide) => observer.observe(slide));
+      }
+
+      bindEvents() {
+        window.addEventListener("keydown", (event) => {
+          const nextKeys = ["ArrowDown", "ArrowRight", "PageDown", " "];
+          const prevKeys = ["ArrowUp", "ArrowLeft", "PageUp"];
+
+          if (nextKeys.includes(event.key)) {
+            event.preventDefault();
+            this.goTo(this.current + 1);
+          }
+
+          if (prevKeys.includes(event.key)) {
+            event.preventDefault();
+            this.goTo(this.current - 1);
+          }
+
+          if (event.key === "Home") {
+            event.preventDefault();
+            this.goTo(0);
+          }
+
+          if (event.key === "End") {
+            event.preventDefault();
+            this.goTo(this.slides.length - 1);
+          }
+        });
+
+        window.addEventListener("wheel", (event) => {
+          const now = Date.now();
+          if (now - this.lastWheel < 650 || Math.abs(event.deltaY) < 18) return;
+          this.lastWheel = now;
+          this.goTo(this.current + Math.sign(event.deltaY));
+        }, { passive: true });
+
+        window.addEventListener("touchstart", (event) => {
+          this.touchStartY = event.changedTouches[0].clientY;
+        }, { passive: true });
+
+        window.addEventListener("touchend", (event) => {
+          const delta = this.touchStartY - event.changedTouches[0].clientY;
+          if (Math.abs(delta) > 42) {
+            this.goTo(this.current + Math.sign(delta));
+          }
+        }, { passive: true });
+      }
+
+      goTo(index) {
+        const target = Math.max(0, Math.min(this.slides.length - 1, index));
+        this.slides[target].scrollIntoView({ behavior: "smooth", block: "start" });
+        this.update(target);
+      }
+
+      update(index) {
+        this.current = index;
+        const progress = ((index + 1) / this.slides.length) * 100;
+        document.documentElement.style.setProperty("--progress", `${progress}%`);
+        this.progress.style.width = `${progress}%`;
+        this.indexLabel.textContent = `${index + 1} / ${this.slides.length}`;
+
+        this.slides.forEach((slide, slideIndex) => {
+          slide.classList.toggle("is-active", slideIndex === index);
+        });
+
+        Array.from(this.dots.children).forEach((dot, dotIndex) => {
+          dot.setAttribute("aria-current", dotIndex === index ? "true" : "false");
+        });
+      }
+    }
+
+    new PresentationController();
+  </script>
+</body>
+</html>
